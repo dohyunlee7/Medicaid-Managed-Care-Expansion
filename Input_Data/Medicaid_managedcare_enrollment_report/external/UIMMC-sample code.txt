@@ -1,0 +1,55 @@
+*-----------------------------------------------
+|SAMPLE SAS CODE FOR MMCCI SURVEY VARIABLES	|
+|This code details how the mutually exclusive	|
+|categories discussed in the survey description |
+|are created. It also shows how to create a more|
+|detailed set of dummies that define the full	|
+|range of voluntary/mandatory and PCCM/HMO 	|
+|combinations.					|
+ -----------------------------------------------;
+
+
+	*------------------------------
+	|Dummies for All Program Types |
+	------------------------------;
+
+		*----------------
+		|No MMC Programs |
+		 ----------------;
+
+	        if hmom=0 and hmov=0 and pccmm=0 and pccmv=0  then nommc=1; else nommc=0;
+
+		*------------------------
+		|Only Voluntary Programs |
+		 ------------------------;
+
+		if hmom=0 and hmov=0 and pccmm=0 and pccmv=1  then pccmv_only=1; else pccmv_only=0;
+		if hmom=0 and hmov=1 and pccmm=0 and pccmv=0  then hmov_only =1; else hmov_only =0;
+		if hmom=0 and hmov=1 and pccmm=0 and pccmv=1  then pccmv_hmov=1; else pccmv_hmov=0;
+
+		*------------------------
+		|Only Mandatory Programs |
+		 ------------------------;
+
+		if hmom=0 and hmov=0 and pccmm=1 and pccmv=0  then pccmm_only=1; else pccmm_only=0;
+		if hmom=1 and hmov=0 and pccmm=0 and pccmv=0  then hmom_only =1; else hmom_only =0;
+		if hmom=1 and hmov=0 and pccmm=1 and pccmv=0  then pccmm_hmom=1; else pccmm_hmom=0;
+
+		*-----------------------------
+		|Mandatory-Voluntary Programs |
+		 -----------------------------;
+
+		if hmom=1 and hmov=1 and pccmm=0 and pccmv=0  then hmom_hmov =1;  else hmom_hmov =0;
+		if hmom=1 and hmov=0 and pccmm=0 and pccmv=1  then hmom_pccmv=1;  else hmom_pccmv=0;
+		if hmom=0 and hmov=1 and pccmm=1 and pccmv=0  then pccmm_hmov=1;  else pccmm_hmov=0;
+		if hmom=0 and hmov=0 and pccmm=1 and pccmv=1  then pccmm_pccmv=1; else pccmm_pccmv=0;
+		*This last category does not exist in the dataset but was included for completeness;
+
+	*-----------------------------------------
+	|Dummies that reflect categories detailed | 
+	|in 2001 MMCCI survey description	  |
+ 	 -----------------------------------------;
+
+		if pccmv_only=1 or hmov_only =1 or pccmv_hmov=1 then onlyvol=1;   else onlyvol=0;
+		if hmom_only =1 or hmom_hmov=1 			then mandhmo=1;   else mandhmo=0;
+		if pccmm_hmom=1 or hmom_pccmv=1 or pccmm_hmov=1 then mixedmand=1; else mixedmand=0;

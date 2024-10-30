@@ -1,0 +1,58 @@
+state,notes,total_medicaid_enrollees,comprehensive_mco_with_or_without_mltss,pccm,mltss_only,bho_pihp_andor_pahp,dental,transportation,pace,other,year,pccm_entity
+TOTALS,,"80,814,842","58,469,355","1,645,799","488,451","8,266,995","12,353,019","16,506,478","54,466","77,558",2020,"4,443,624"
+Alabama,,"1,092,935",--,--,--,--,--,--,166,--,2020,"861,758"
+Alaska4,"Alaska's Total Medicaid Enrollment as of July 1, 2020 was taken from the July - September 2020 enrollment data collected through the Medicaid Budget and Expenditure System, updated June 2021, and accessed April 20, 2022. See https://data.medicaid.gov/dataset/6c114b2c-cb83-559b-832f-4d8b06d6c1b9/.","222,723",--,--,--,--,--,--,--,--,2020,--
+"American Samoa",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2020,n/a
+Arizona,,"2,013,348","1,711,292",--,--,--,--,--,--,--,2020,--
+Arkansas,,"988,178","42,594",--,--,--,"608,149","815,723",344,--,2020,"410,481"
+California,,"13,016,208","10,639,640",--,--,7,"805,658",--,"10,909",--,2020,--
+Colorado5,"Colorado did not provide enrollment counts for plans with less than 30 beneficiaries. As a result, PACE program-level enrollment may be lower than actual enrollment.","1,316,543","129,369",--,--,--,--,--,"4,623",--,2020,"1,089,636"
+Connecticut6,"Connecticut's Total Medicaid Enrollment as of July 1, 2020 was taken from the July - September 2020 enrollment data collected through the Medicaid Budget and Expenditure System, updated June 2021, and accessed April 20, 2022. See https://data.medicaid.gov/dataset/6c114b2c-cb83-559b-832f-4d8b06d6c1b9/.","990,928",--,--,--,--,--,--,--,--,2020,--
+Delaware,,"248,794","211,908",--,--,--,--,"217,895",255,--,2020,--
+"District of Columbia",,"265,501","193,692",--,--,--,--,"53,900",--,--,2020,--
+Florida,,"4,210,849","3,278,980",--,"119,623",--,"3,458,285",--,"2,291",--,2020,--
+Georgia7," Georgia is unable to provide separate counts of managed care and fee-for-service beneficiaries for their NEMT program (which uses both payment models). As a result, enrollment counts presented in this table include enrollees in both managed care and FFS.","2,288,352","1,585,535",--,--,--,--,"1,766,478",--,"61,520",2020,--
+Guam,,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2020,n/a
+Hawaii8,"Hawaii's enrollment in comprehensive MCOs includes 5,108 beneficiaries who enrolled in an MCO plus Ohana Community Care Service for behavioral health services.","360,381","360,277",--,--,--,--,--,--,--,2020,--
+Idaho,,"375,710","25,711","289,464",--,"321,628","344,074","344,074",--,--,2020,--
+Illinois,,"3,143,105","2,337,395",--,"56,910",--,--,--,--,--,2020,--
+Indiana,,"1,597,421","1,199,990",--,--,--,--,--,454,--,2020,--
+Iowa,,"673,328","602,684",--,--,--,"419,105","9,803",590,--,2020,--
+Kansas,,"413,787","365,104",--,--,--,--,--,704,--,2020,--
+Kentucky,,"1,503,931","1,365,246",--,--,--,--,"1,418,458",--,--,2020,--
+Louisiana,,"1,731,060","1,468,380",--,--,"138,578","1,480,707",--,465,--,2020,--
+Maine,,"291,765",--,"191,513",--,--,--,"265,968",--,--,2020,--
+Maryland,,"1,483,337","1,256,167",--,--,--,--,--,120,--,2020,--
+Massachusetts,,"1,893,605","756,892","92,072",--,"552,518",--,--,"4,955",--,2020,"390,763"
+Michigan9,"Michigan has two programs that provide HCBS waiver services under capitation: MI Choice and the Specialty Prepaid Inpatient Health Plan (SPIHP). In this table, MI Choice is reported as an MLTSS program and SPIHP is reported as a BHO. In Table 6, both programs are considered in the count of LTSS users.","2,573,851","1,927,140",--,"11,879","2,415,313","975,356",--,"3,596",--,2020,--
+Minnesota,,"1,119,244","941,818",--,--,--,--,--,--,--,2020,--
+Mississippi,,"704,743","450,665",--,--,--,--,--,--,--,2020,--
+Missouri,,"939,919","657,492",--,--,--,--,"267,575",--,--,2020,--
+Montana,,"263,872",--,"235,052",--,--,--,--,--,--,2020,--
+Nebraska,,"262,780","261,222",--,--,--,"260,100",--,216,--,2020,--
+Nevada,,"720,389","558,040",--,--,--,"556,987","650,160",--,--,2020,--
+"New Hampshire",,"210,094","190,713",--,--,--,--,--,--,--,2020,--
+"New Jersey",,"1,683,987","1,587,796",--,--,--,--,"1,587,896","1,140",--,2020,--
+"New Mexico",,"876,406","717,801",--,--,--,--,--,854,--,2020,--
+"New York",,"6,458,770","4,760,049",--,"248,964",--,--,--,"5,512",--,2020,--
+"North Carolina",,"2,266,262",--,--,--,"1,601,688",--,--,"2,205",--,2020,"1,690,986"
+"North Dakota",,"94,716","21,497","52,810",--,--,--,--,176,--,2020,--
+"Northern Mariana Islands",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2020,n/a
+Ohio,,"2,973,911","2,574,386",--,--,--,--,--,617,--,2020,--
+Oklahoma,,"877,492",--,"701,359",--,--,--,"701,359",638,--,2020,--
+Oregon10,"Oregon Health Plan includes (1) Coordinated Care Organizations (CCOs), (2) Dental Care Organizations (DCOs), and (3) the Mental Health Organization. CCO enrollees receive physical, dental and mental health services and may be enrolled in more than one plan type simultaneously.","1,159,844","969,719",--,--,--,--,--,"1,618",--,2020,--
+Pennsylvania11,"Pennsylvania did not provide Medicaid only enrollment counts for plans with less than 11 beneficiaries. As a result, PACE program level enrollment may be slightly undercounted.","2,984,420","2,752,390",--,--,"2,804,800",--,"650,241","7,075",185,2020,--
+"Puerto Rico",,"1,283,091","1,283,091",--,--,--,--,--,--,--,2020,--
+"Rhode Island",,"309,491","266,861",--,--,--,"113,513","301,740",341,--,2020,--
+"South Carolina",,"1,277,117","841,387",756,--,--,--,"1,277,117",430,--,2020,--
+"South Dakota",,"123,000",--,"79,462",--,--,--,--,--,--,2020,--
+Tennessee12,"Tennessee’s enrollment in comprehensive MCOs includes 1,312,229 beneficiaries who were also enrolled in OptumRx for pharmacy benefits and 862,017 beneficiaries who were also enrolled in DentaQuest USA Insurance Company for dental services.","1,582,708","1,464,590",--,--,--,--,--,273,--,2020,--
+Texas,,"4,222,317","4,006,196",--,--,--,"3,115,343","4,073,144","1,195",--,2020,--
+Utah,,"342,000","273,388",--,--,"283,756","215,742","274,825",--,--,2020,--
+Vermont,,"174,068","118,656",--,--,--,--,--,--,--,2020,--
+"Virgin Islands",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2020,n/a
+Virginia,,"1,473,316","1,398,958",--,--,--,--,--,"1,057",--,2020,--
+Washington,,"1,830,122","1,607,696","3,311",--,"147,506",--,"1,830,122",965,"12,761",2020,--
+"West Virginia",,"534,107","429,336",--,--,--,--,--,--,--,2020,--
+Wisconsin,,"1,308,070","877,612",--,"51,075","1,201",--,--,547,"3,092",2020,--
+Wyoming,,"62,946",--,--,--,--,--,--,135,--,2020,--

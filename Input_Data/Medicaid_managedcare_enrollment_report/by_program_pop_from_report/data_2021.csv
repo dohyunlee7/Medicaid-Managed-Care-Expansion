@@ -1,0 +1,58 @@
+state,notes,total_medicaid_enrollees,comprehensive_mco_with_or_without_mltss,pccm,mltss_only,bho_pihp_andor_pahp,dental,transportation,pace,other,year,pccm_entity
+TOTALS,,"90,519,895","67,655,060","2,142,801","555,988","8,005,984","14,062,551","14,217,057","59,788","366,572",2021,"3,184,167"
+Alabama,,"1,198,510",--,--,--,--,--,--,161,--,2021,"951,013"
+Alaska4,"Alaska's Total Medicaid Enrollment as of July 1, 2021 was taken from the July - September 2021 enrollment data collected through the Medicaid Budget and Expenditure System, updated January 2023, and accessed April 2, 2023. See https://data.medicaid.gov/dataset/6c114b2c-cb83-559b-832f-4d8b06d6c1b9/.","242,176",--,--,--,--,--,--,--,--,2021,--
+"American Samoa",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2021,n/a
+Arizona,,"2,244,273","1,795,458",--,"62,938","61,894",--,--,--,--,2021,--
+Arkansas,,"1,069,577","49,839","453,131",--,--,"723,012","909,865",430,"287,904",2021,--
+California,,"14,150,266","11,650,518",--,--,--,"886,441",--,"13,295",--,2021,--
+Colorado5,"Colorado did not provide enrollment counts for plans with fewer than 30 beneficiaries. As a result, PACE program-level enrollment may be lower than actual enrollment.","1,499,303","153,422",--,--,--,--,--,"4,818",--,2021,"1,264,505"
+Connecticut6,"Connecticut's Total Medicaid Enrollment as of July 1, 2021 was taken from the July - September 2021 enrollment data collected through the Medicaid Budget and Expenditure System, updated January 2023, and accessed April 2, 2023. See https://data.medicaid.gov/dataset/6c114b2c-cb83-559b-832f-4d8b06d6c1b9/.","1,106,169",--,--,--,--,--,--,--,--,2021,--
+Delaware,,"276,475","240,660",--,--,--,--,"244,822",253,--,2021,--
+"District of Columbia",,"285,297","231,323",--,--,--,--,"36,922",--,--,2021,--
+Florida,,"4,871,362","3,808,931",--,"121,321",--,"4,049,723",--,"3,111",--,2021,--
+Georgia,,"2,539,039","1,829,900",--,--,--,--,"1,990,527",--,"62,686",2021,--
+Guam,,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2021,n/a
+Hawaii,,"420,033","420,033",--,--,--,--,--,--,--,2021,--
+Idaho,,"421,589","23,603","340,606",--,"367,563","391,216","391,216",--,--,2021,--
+Illinois,,"3,467,588","2,616,074",--,"64,799",--,--,--,--,--,2021,--
+Indiana,,"1,870,171","1,473,626",--,--,--,--,--,428,--,2021,--
+Iowa,,"749,862","703,448",--,--,--,"711,215",--,599,--,2021,--
+Kansas,,"461,405","405,893",--,--,--,--,--,741,--,2021,--
+Kentucky,,"1,584,976","1,416,189",--,--,--,--,"1,582,351",--,--,2021,--
+Louisiana,,"1,894,676","1,616,662",--,--,"138,111","1,758,888",--,421,--,2021,--
+Maine,,"331,396",--,"228,386",--,--,--,"326,611",--,--,2021,--
+Maryland,,"1,780,886","1,520,492",--,--,--,--,--,107,--,2021,--
+Massachusetts,,"2,091,955","842,924","112,733",--,"624,711",--,--,"5,080",--,2021,"449,121"
+Michigan7,"Michigan reported a number for total enrollment in comprehensive managed care that was greater than total Medicaid enrollment and total Medicaid enrollment in any managed care, but did not provide an explanation for why this number was greater.","2,900,801","2,910,628",--,"12,288","2,700,042","814,699",--,"4,001",--,2021,--
+Minnesota,,"1,253,815","1,086,715",--,--,--,--,--,--,--,2021,--
+Mississippi,,"776,482","475,168",--,--,--,--,--,--,--,2021,--
+Missouri,,"1,048,083","777,173",--,--,--,--,"267,152",--,--,2021,--
+Montana,,"309,776",--,"245,390",--,--,--,--,--,--,2021,--
+Nebraska,,"336,290","334,718",--,--,--,"296,127",--,213,--,2021,--
+Nevada,,"847,650","641,100",--,--,--,"653,494","770,538",--,--,2021,--
+"New Hampshire",,"239,439","218,604",--,--,--,--,--,--,--,2021,--
+"New Jersey",,"1,892,091","1,819,895",--,--,--,--,"1,820,183","1,138",--,2021,--
+"New Mexico",,"941,830","780,811",--,--,--,--,--,"1,009",--,2021,--
+"New York",,"7,145,884","5,371,739",--,"243,332",--,--,--,"5,388",--,2021,--
+"North Carolina",,"2,557,593","1,547,885",--,--,"500,129",--,--,"2,090",--,2021,"519,528"
+"North Dakota",,"125,354","33,639","52,339",--,--,--,--,167,--,2021,--
+"Northern Mariana Islands",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2021,n/a
+Ohio,,"3,238,849","2,782,234",--,--,--,--,--,657,--,2021,--
+Oklahoma,,"1,065,121",--,"622,382",--,--,--,"1,039,676","1,171",--,2021,--
+Oregon8,"Oregon Health Plan includes (1) Coordinated Care Organizations (CCOs), (2) Dental Care Organizations (DCOs), and (3) the Mental Health Organization. CCO enrollees receive physical, dental and mental health services and may be enrolled in more than one plan type simultaneously.","1,286,095","1,163,448",--,--,--,--,--,"1,551",--,2021,--
+Pennsylvania9,"Pennsylvania did not provide Medicaid-only enrollment counts for plans with fewer than 11 beneficiaries. As a result, PACE program level enrollment may be slightly undercounted.","3,292,313","3,083,197",--,--,"3,110,478",--,"705,163","7,586",183,2021,--
+"Puerto Rico",,"1,501,860","1,501,860",--,--,--,--,--,--,--,2021,--
+"Rhode Island",,"339,276","286,708",--,--,--,"127,877","335,296",344,--,2021,--
+"South Carolina",,"1,446,070","961,934",890,--,--,--,"1,446,070",443,--,2021,--
+"South Dakota",,"137,268",--,"83,890",--,--,--,--,--,--,2021,--
+Tennessee10,"Tennessee’s enrollment in comprehensive MCOs includes 1,438,599 beneficiaries who were also enrolled in OptumRx for pharmacy benefits and 929,377 beneficiaries who were also enrolled in DentaQuest USA Insurance Company for dental services.","1,717,984","1,596,211",--,--,--,--,--,271,--,2021,--
+Texas,,"4,928,655","4,023,238",--,--,--,"3,432,747",--,"1,084",--,2021,--
+Utah11,"Utah Medicaid enrollment increased due to state Medicaid expansion in 2020.","424,565","351,918",--,--,"335,584","217,112","342,010",--,--,2021,--
+Vermont12,"The Department of Vermont Health Access, a state agency, acts as Vermont's single MCO entity via a managed care-like model that operates like a non-risk pre-paid inpatient health plan (PIHP).","191,240","131,002",--,--,--,--,--,,--,2021,--
+"Virgin Islands",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2021,n/a
+Virginia,,"1,852,563","1,690,548",--,--,--,--,--,"1,608",--,2021,--
+Washington,,"2,008,655","1,771,676","3,054",--,"166,465",--,"2,008,655","1,110","12,950",2021,--
+"West Virginia",,"599,336","488,048",--,--,--,--,--,--,--,2021,--
+Wisconsin,,"1,484,746","1,025,968",--,"51,310","1,007",--,--,513,"2,849",2021,--
+Wyoming13,"Wyoming's Total Medicaid Enrollment as of July 1, 2021 was taken from the July - September 2021 enrollment data collected through the Medicaid Budget and Expenditure System, updated January 2023, and accessed April 2, 2023. See https://data.medicaid.gov/dataset/6c114b2c-cb83-559b-832f-4d8b06d6c1b9/.","73,227",--,--,--,--,--,--,--,--,2021,--

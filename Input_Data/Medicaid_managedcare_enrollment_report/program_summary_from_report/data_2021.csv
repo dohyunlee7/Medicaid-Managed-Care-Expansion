@@ -1,0 +1,58 @@
+state,notes,total_medicaid_enrollees,total_medicaid_enrollment_in_any_type_of_managed_care,medicaid_enrollment_in_comprehensive_managed_care,medicaid_newly_eligible_adults_enrolled_in_comprehensive_mcos,year
+TOTALS,,"90,519,895","77,211,654","67,561,426","19,313,621",2021
+Alabama,,"1,198,510","951,174",161,0,2021
+Alaska5,"Alaska's Total Medicaid Enrollment as of July 1, 2021 was taken from the July - September 2021 enrollment data collected through the Medicaid Budget and Expenditure System, updated January 2023, and accessed April 2, 2023. See https://data.medicaid.gov/dataset/6c114b2c-cb83-559b-832f-4d8b06d6c1b9/.","242,176",0,0,0,2021
+"American Samoa",,n/a,n/a,n/a,n/a,2021
+Arizona,,"2,244,273","1,920,290","1,795,458","581,850",2021
+Arkansas,,"1,069,577","963,945","50,269","1,961",2021
+California,,"14,150,266","11,674,619","11,663,813","3,774,831",2021
+Colorado6,"Colorado reported plan level enrollment as 0 for plans that had fewer than 30 beneficiaries. As a result, reported Medicaid Enrollment in Comprehensive Managed Care may be lower than actual enrollment.","1,499,303","1,422,844","4,818","77,560",2021
+Connecticut7,"Connecticut's Total Medicaid Enrollment as of July 1, 2021 was taken from the July - September 2021 enrollment data collected through the Medicaid Budget and Expenditure System, updated January 2023, and accessed April 2, 2023. See https://data.medicaid.gov/dataset/6c114b2c-cb83-559b-832f-4d8b06d6c1b9/.","1,106,169",0,0,0,2021
+Delaware,,"276,475","244,822","240,913","74,684",2021
+"District of Columbia",,"285,297","268,245","231,323","73,744",2021
+Florida,,"4,871,362","4,099,027","3,812,042",0,2021
+Georgia,,"2,539,039","2,229,243","1,829,900",0,2021
+Guam,,n/a,n/a,n/a,n/a,2021
+Hawaii,,"420,033","420,033","420,033","159,087",2021
+Idaho,,"421,589","391,216","23,603",0,2021
+Illinois,,"3,467,588","2,680,873","2,616,074","665,086",2021
+Indiana,,"1,870,171","1,474,054","1,474,054","461,955",2021
+Iowa,,"749,862","711,427","704,047","229,765",2021
+Kansas,,"461,405","407,229","406,634",0,2021
+Kentucky,,"1,584,976","1,582,351","1,416,189","645,520",2021
+Louisiana,,"1,894,676","1,759,372","1,617,083","662,959",2021
+Maine,,"331,396","326,611",0,0,2021
+Maryland,,"1,780,886","1,520,599","1,520,599","440,264",2021
+Massachusetts,,"2,091,955","1,387,657","848,004","187,809",2021
+Michigan8,"Michigan reported a number for total enrollment in comprehensive managed care that was greater than total Medicaid enrollment and total Medicaid enrollment in any managed care, but did not provide an explanation for why this number was greater.","2,900,801","2,692,435","2,914,629","758,228",2021
+Minnesota,,"1,253,815","1,150,333","1,086,715","239,203",2021
+Mississippi,,"776,482","475,168","475,168",0,2021
+Missouri,,"1,048,083","810,775","777,173",0,2021
+Montana,,"309,776","245,390",0,0,2021
+Nebraska,,"336,290","334,939","334,931","51,213",2021
+Nevada,,"847,650","792,428","641,100","273,265",2021
+"New Hampshire",,"239,439","218,604","218,604","76,648",2021
+"New Jersey",,"1,892,091","1,821,033","1,821,033","664,202",2021
+"New Mexico",,"941,830","781,820","781,820","267,716",2021
+"New York9","New York's total Medicaid Section VIII expansion count is higher than expected as compared to MBES. New York's Medicaid Section VIII expansion count includes many people with New York State of Health enrollment who are not actually in the Medicaid Section VIII expansion population.","7,145,884","5,620,459","5,377,127","4,262,161",2021
+"North Carolina",,"2,557,593","2,054,350","1,549,975",0,2021
+"North Dakota",,"125,354","86,164","33,806","33,639",2021
+"Northern Mariana Islands",,n/a,n/a,n/a,n/a,2021
+Ohio,,"3,238,849","2,782,891","2,782,891","756,534",2021
+Oklahoma10,"Oklahoma's total Medicaid enrollment increased due to expanding Medicaid coverage to childless adults effective July 1, 2021.","1,065,121","1,049,630","1,171",0,2021
+Oregon,,"1,286,095","1,164,999","1,164,999","545,022",2021
+Pennsylvania,,"3,292,313","3,155,790","3,090,783","1,032,189",2021
+"Puerto Rico",,"1,501,860","1,501,860","1,501,860","587,748",2021
+"Rhode Island",,"339,276","336,240","287,052","97,032",2021
+"South Carolina",,"1,446,070","1,446,070","962,377",0,2021
+"South Dakota",,"137,268","83,890",0,0,2021
+Tennessee,,"1,717,984","1,596,482","1,596,482",0,2021
+Texas,,"4,928,655","4,770,549","4,024,322",0,2021
+Utah11,"Utah Medicaid enrollment increased due to state Medicaid expansion in 2020.","424,565","402,216","351,918","62,863",2021
+Vermont12,"The Department of Vermont Health Access, a state agency, acts as Vermont's single MCO entity via a managed care-like model that operates like a non-risk pre-paid inpatient health plan (PIHP).","191,240","131,002","131,002","57,656",2021
+"Virgin Islands",,n/a,n/a,n/a,n/a,2021
+Virginia,,"1,852,563","1,692,156","1,692,156","523,964",2021
+Washington,,"2,008,655","2,008,655","1,772,786","789,431",2021
+"West Virginia",,"599,336","488,048","488,048","197,832",2021
+Wisconsin,,"1,484,746","1,081,647","1,026,481",0,2021
+Wyoming13,"Wyoming's Total Medicaid Enrollment as of July 1, 2021 was taken from the July - September 2021 enrollment data collected through the Medicaid Budget and Expenditure System, updated January 2023, and accessed April 2, 2023. See https://data.medicaid.gov/dataset/6c114b2c-cb83-559b-832f-4d8b06d6c1b9/.","73,227",0,0,0,2021

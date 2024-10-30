@@ -1,0 +1,58 @@
+state,notes,total_medicaid_enrollees,comprehensive_mco_with_or_without_mltss,pccm,mltss_only,bho_pihp_andor_pahp,dental,transportation,pace,other,year,pccm_entity
+TOTALS,,"78,737,936","55,157,090","2,612,803","552,658","9,262,546","10,398,696","13,508,968","51,654","99,035",2019,"2,994,995"
+Alabama4,"Beneficiaries can simultaneously enroll in Alabama's two PCCM programs: Patient 1st and Health Homes. Total PCCM enrollment is 1,062,265, and the de-duplicated enrollment is 809,137. ","1,039,621",--,"809,137",--,--,--,--,173,"32,463",2019,"28,018"
+Alaska5,"Alaska's Total Medicaid Enrollment as of July 1, 2019 was taken from the Medicaid Budget and Expenditure System, accessed June 16, 2021: https://data.medicaid.gov/Enrollment/State-Medicaid-and-CHIP-Applications-Eligibility-D/n5ce-jxme","207,174",--,--,--,--,--,--,--,--,2019,--
+"American Samoa",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2019,n/a
+Arizona,,"1,874,857","1,580,628",--,--,--,--,--,--,--,2019,--
+Arkansas,,"951,645","45,236","416,811",--,--,"581,778","663,301",364,--,2019,--
+California,,"12,780,305","10,385,180",--,--,26,"800,356",--,"8,946",595,2019,--
+Colorado6,"Colorado reported plan level enrollment as 0 for plans that had less than 30 beneficiaries. As a result, reported program-level enrollment may be lower than actual enrollment.","1,231,952","112,938",--,--,--,--,--,"4,333",--,2019,"1,019,506"
+Connecticut7,"Connecticut's Total Medicaid Enrollment as of July 1, 2019 was taken from the Medicaid Budget and Expenditure System, accessed June 16, 2021: https://data.medicaid.gov/Enrollment/State-Medicaid-and-CHIP-Applications-Eligibility-D/n5ce-jxme","837,367",--,--,--,--,--,--,--,--,2019,--
+Delaware,,"237,244","199,724",--,--,--,--,"208,650",261,--,2019,--
+"District of Columbia",,"267,329","194,136",--,--,--,--,"54,983",--,--,2019,--
+Florida,,"3,813,067","2,967,589",--,"200,320",--,"3,095,204",--,"2,049",--,2019,--
+Georgia8,"Georgia did not monitor NEMT program enrollment in 2019, so total enrollment in transportation programs is reported here as zero.","1,917,560","1,418,039",--,--,--,--,0,--,"48,261",2019,--
+Guam,,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2019,n/a
+Hawaii9,"Hawaii's enrollment in comprehensive MCOs includes 4,463 beneficiaries who enrolled in an MCO plus Ohana Community Care Service for behavioral health services. ","327,893","327,762",--,--,--,--,--,--,--,2019,--
+Idaho,,"291,466","12,230","247,524",--,"264,723","289,155","289,155",--,--,2019,--
+Illinois,,"3,001,288","2,122,611",--,"52,450",--,--,--,--,--,2019,--
+Indiana,,"1,462,152","1,074,346",--,--,--,--,--,402,--,2019,--
+Iowa,,"642,329","602,684",--,--,--,"390,041","9,951",562,--,2019,--
+Kansas,,"398,034","341,297",--,--,--,--,--,582,--,2019,--
+Kentucky,,"1,353,368","1,224,145",--,--,--,--,"1,201,648",--,--,2019,--
+Louisiana,,"1,622,025","1,356,398",--,--,"132,951","1,499,473",--,476,--,2019,--
+Maine,,"258,581",--,"155,099",--,--,--,"242,488",--,--,2019,--
+Maryland,,"1,457,966","1,190,456",--,--,--,--,--,103,--,2019,--
+Massachusetts,,"1,829,245","726,804","106,929",--,"530,032",--,--,"4,884",--,2019,"356,253"
+Michigan10,"Michigan has two programs that provide HCBS waiver services under capitation: MI Choice and the Specialty Prepaid Inpatient Health Plan (SPIHP). In this table, MI Choice is reported as an MLTSS program and SPIHP is reported as a BHO. In Table 6, both programs are considered in the count of LTSS users. ","4,713,103","2,443,239",--,"11,425","2,204,802","975,356",--,"3,169",--,2019,--
+Minnesota,,"1,085,204","849,507",--,--,--,--,--,--,--,2019,--
+Mississippi,,"673,247","436,028",--,--,--,--,--,--,--,2019,--
+Missouri,,"858,077","596,646",--,--,--,--,"244,232",--,--,2019,--
+Montana,,"254,273",--,"207,316",--,--,--,--,--,--,2019,--
+Nebraska,,"248,377","247,285",--,--,--,"246,055",--,205,--,2019,--
+Nevada,,"654,497","498,872",--,--,--,"498,872","575,184",--,--,2019,--
+"New Hampshire",,"193,363","173,073",--,--,--,--,--,--,--,2019,--
+"New Jersey",,"1,612,863","1,498,187",--,--,--,--,"1,486,074","1,152",--,2019,--
+"New Mexico",,"832,295","667,641",--,--,--,--,--,794,--,2019,--
+"New York",,"6,140,117","4,460,781",--,"238,684",--,--,--,"5,759",--,2019,--
+"North Carolina",,"2,173,625",--,--,--,"1,542,689",--,--,"2,310",--,2019,"1,591,218"
+"North Dakota",,"88,829","19,692","45,939",--,--,--,--,180,--,2019,--
+"Northern Mariana Islands",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2019,n/a
+Ohio,,"2,823,271","2,371,042",--,--,--,--,--,543,--,2019,--
+Oklahoma,,"790,443",--,"529,050",--,--,--,"645,075",537,--,2019,--
+Oregon11,"Oregon Health Plan includes (1) Coordinated Care Organizations (CCOs); (2) Dental Care Organizations (DCOs), like Advantage Dental Services; Capitol Dental Care, Inc.; CareOregon Dental; Managed Dental Care of Oregon; ODS Community Health, Inc.; and Family Dental Care, or (3) the Mental Health Organization called Greater Oregon Behavioral Health, Inc. CCO enrollees receive physical, dental and mental health services and may be enrolled in more than one plan type simultaneously.","1,080,170","914,537",--,--,--,--,--,"1,481",--,2019,--
+Pennsylvania,,"2,827,289","2,434,956",--,--,"2,587,654",--,"621,588","7,295",172,2019,--
+"Puerto Rico",,"1,331,694","1,331,694",--,--,--,--,--,--,--,2019,--
+"Rhode Island",,"312,141","258,954",--,--,--,"113,240","290,144",320,--,2019,--
+"South Carolina",,"1,253,433","801,150",666,--,--,--,"1,253,433",416,--,2019,--
+"South Dakota",,"122,209",--,"90,253",--,--,--,--,--,--,2019,--
+Tennessee,,"1,565,485","1,437,402",--,--,--,--,--,285,--,2019,--
+Texas,,"3,878,840","3,577,456",--,--,--,"1,710,062","3,740,712","1,177",--,2019,--
+Utah,,"290,203","215,764",--,--,"255,795","199,104","239,666",--,--,2019,--
+Vermont12,,"166,114","108,731",--,--,--,--,--,--,--,2019,--
+"Virgin Islands",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2019,n/a
+Virginia,,"1,460,075","1,274,510",--,--,--,--,--,"1,418",--,2019,--
+Washington,,"1,742,684","1,512,472","4,079",--,"1,742,684",--,"1,742,684",787,"14,298",2019,--
+"West Virginia",,"508,092","387,376",--,--,--,--,--,--,--,2019,--
+Wisconsin,,"1,194,983","757,892",--,"49,779","1,190",--,--,554,"3,246",2019,--
+Wyoming,,"60,472",--,--,--,--,--,--,137,--,2019,--

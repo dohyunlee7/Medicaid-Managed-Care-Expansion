@@ -1,0 +1,60 @@
+state,notes,total_medicaid_enrollees,comprehensive_mco_with_or_without_mltss,pccm,mltss_only,bho_pihp_andor_pahp,dental,transportation,pace,other,year,pccm_entity
+"Rhode Island",,"337,809","270,257",--,--,--,"104,666","278,402",293,--,2017,--
+Washington13,"Washington is unable to provide separate counts of Medicaid-only and dual enrollment for their NEMT, ICMH, and PACE programs. As a result, enrollment counts presented in this table include both Medicaid-only and Medicare-Medicaid beneficiaries.","1,824,730","1,611,793","6,729",--,"1,824,730",--,"1,824,730",609,--,2017,--
+"North Carolina",,"2,110,914",--,--,--,"1,600,547",--,--,"1,943",--,2017,"1,510,955"
+TOTALS,,"80,242,585","55,519,658","2,914,483","367,600","10,730,250","6,974,762","14,373,358","43,092","28,343",2017,"2,548,286"
+Louisiana,,"1,626,037","1,377,682",--,--,"117,429","1,489,131",--,443,--,2017,--
+Utah,,"284,316","235,408",--,--,"279,889","133,087","239,578",--,--,2017,--
+Mississippi,,"708,992","487,201",--,--,--,--,--,--,--,2017,--
+Arizona,,"1,917,183","1,617,558",--,--,--,--,--,--,--,2017,--
+"New Hampshire",,"204,458","133,811",--,--,--,--,--,--,--,2017,--
+Indiana,,"1,475,463","1,138,236",--,--,--,--,--,132,--,2017,--
+"American Samoa",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2017,n/a
+Missouri,,"983,835","733,120",--,--,--,--,"242,177",--,--,2017,--
+"South Carolina",,"1,217,302","772,074",456,--,--,--,"1,217,302",439,--,2017,--
+Guam,,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2017,n/a
+"New York",,"6,105,120","4,520,640",--,"184,298",--,--,--,"5,671",--,2017,--
+Georgia8,"Georgia is unable to provide separate counts of managed care and fee-for-service beneficiaries for their NEMT program (which uses both payment models). As a result, enrollment counts presented in this table include enrollees in both managed care and FFS.","1,813,016","1,247,705",--,--,--,--,"1,556,221",--,"9,104",2017,--
+Nevada,,"653,968","448,513","38,543",--,--,--,"578,683",--,--,2017,--
+Alabama4,"Beneficiaries can simultaneously enroll in Alabama's two PCCM programs: Patient 1st and Health Homes. The de-dupilcated Patient 1st enrollment is 380,285.","1,019,417",--,"611,251",--,--,--,--,174,"22,844",2017,--
+Connecticut7,"Connecticut did not provide total Medicaid enrollment as of July 1, 2017. This figure is from the September - December 2016 enrollment data collected through the Medicaid Budget and Expenditure System, updated December 2017, and accessed August 31, 2018. See https://data.medicaid.gov/Enrollment/2016-4Q-Medicaid-MBES-Enrollment/capi-ym43.","860,758",--,--,--,--,--,--,--,--,2017,--
+Oklahoma,,"808,267",--,"538,738",--,--,--,"652,952",410,--,2017,--
+Virginia,,"1,083,750","722,399",--,--,--,--,--,"1,497",--,2017,--
+Kentucky,,"1,403,257","1,251,070",--,--,--,--,"1,251,301",--,--,2017,--
+Ohio,,"3,083,411","2,550,962",--,--,--,--,--,416,--,2017,--
+Illinois,,"3,192,569","1,884,379","320,335","28,223",--,--,--,--,--,2017,--
+Texas,,"4,038,159","3,691,816","8,573",--,--,"2,933,650","3,214,869","1,230",--,2017,--
+Colorado6,"Colorado reported plan level enrollment as 30 for plans that had less than 30 beneficiaires. As a result, Medicaid Enrollment in Comprehensive Managed Care may be slightly inflated. ted.","1,381,208","137,240",--,--,"1,322,757",--,--,"3,646",--,2017,"1,037,331"
+Alaska5,,"155,865",--,--,--,--,--,--,--,--,2017,--
+Hawaii9,"Hawaii's enrollment in comprehensive MCOs includes 4,918 beneficiaries who enrolled in an MCO plus Ohana Community Care Service for behavioral health services.","365,087","360,905",--,--,--,--,--,--,--,2017,--
+Montana,,"230,296",--,"175,012",--,--,--,--,--,--,2017,--
+Wyoming,,"61,529",--,--,--,--,--,--,129,266,2017,--
+Massachusetts,,"1,874,779","847,708","393,076",--,"453,630",--,--,"3,664",--,2017,--
+Kansas,,"416,645","398,013",--,--,--,--,--,543,--,2017,--
+Oregon11,"Oregon’s enrollment in comprehensive MCOs includes beneficiaries in (1) Coordinated Care Organizations (CCOs); (2) Dental Care Organizations (DCOs), like Access Dental Plan, LLC; Advantage Dental Services; Capitol Dental Care, Inc.; CareOregon Dental; Family Dental Care; Managed Dental Care or Oregon; and ODS Community Health, Inc., or (3) the Mental Health Organization called Greater Oregon Behavioral Health, Inc. CCO enrollees receive physical, dental and mental health services and may be enrolled in more than one plan type simultaneously. Plan-level enrollment is found in Report 5.","1,067,322","858,382",--,--,--,--,--,"1,252",--,2017,--
+"South Dakota",,"124,676",--,"93,369",--,--,--,--,--,--,2017,--
+"New Mexico",,"898,965","695,017",--,--,--,--,--,755,--,2017,--
+Delaware,,"222,859","207,997",--,--,--,--,--,224,--,2017,--
+"Virgin Islands",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2017,n/a
+Maryland,,"1,326,080","1,161,213",--,--,--,--,--,102,--,2017,--
+Wisconsin,,"1,197,770","748,090",--,"46,013","1,245",--,--,574,"3,118",2017,--
+California,,"13,515,168","10,798,374",--,--,23,"903,991",--,"6,858",681,2017,--
+"Northern Mariana Islands",,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,2017,n/a
+"District of Columbia",,"265,547","196,704",--,--,--,--,"74,396",--,--,2017,--
+Idaho,,"299,253","2,290","276,411",--,"290,463","290,463","292,732",--,--,2017,--
+Pennsylvania,,"2,835,800","2,259,379",--,--,"2,552,587",--,"622,053","6,289",149,2017,--
+Nebraska,,"247,894","246,472",--,--,--,0,--,161,--,2017,--
+Tennessee12,"Tennessee’s enrollment in comprehensive MCOs includes 1,262,221 beneficiaries who enrolled in an MCO plus Magellan Health Services for pharmacy benefits and 821,212 beneficiaries who enrolled in an MCO plus DentaQuest USA Insurance Company for dental services.","1,522,658","1,409,266",--,--,--,--,--,289,--,2017,--
+TOTALS,,"79,898,701","55,558,458","2,583,532","403,798","7,717,977","8,292,589","15,204,939","48,395","66,486",2017,"2,910,656"
+Iowa,,"623,501","556,389",--,--,--,"153,985","11,814",352,--,2017,--
+Alabama4,,"1,037,814",--,"396,912",--,--,--,--,172,"14,848",2017,--
+Michigan10,"Michigan has two programs that provide HCBS waiver services under capitation: MI Choice and the Specialty Prepaid Inpatient Health Plan (SPIHP). In this table, MI Choice is reported as an MLTSS program and SPIHP is reported as a BHO. In Table 6, both programs are considered in the count of LTSS users.","4,668,815","2,411,048",--,"11,428","2,286,950","965,789",--,"2,046",--,2017,--
+Vermont,,"183,918","96,823",--,--,--,--,--,--,--,2017,--
+Maine,,"273,451",--,"147,296",--,--,--,"238,193",--,--,2017,--
+"North Dakota",,"92,595","20,515","49,399",--,--,--,--,157,177,2017,--
+Florida,,"3,916,490","3,181,088",--,"97,638",--,--,--,"1,615",--,2017,--
+Arkansas,,"993,792",--,"469,634",--,--,--,"522,252",209,--,2017,--
+"New Jersey",,"1,678,888","1,559,423",--,--,--,--,"1,555,703",972,--,2017,--
+"West Virginia",,"521,186","424,662",--,--,--,--,--,--,--,2017,--
+Minnesota,,"1,107,499","846,115",--,--,--,--,--,--,--,2017,--
+"Puerto Rico",,"1,401,921","1,401,921",--,--,--,--,--,--,--,2017,--
