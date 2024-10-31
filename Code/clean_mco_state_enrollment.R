@@ -70,18 +70,24 @@ setwd(file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
 
 pdf_path <- file.path(getwd(), "Input_Data", 
                       "Medicaid_managedcare_enrollment_report",
+                      "reports",
                       "2015 medicaid managed care enrollment report.pdf")
 save_path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun", 
                        "medicaid_privatization_exp", "Input_Data",
                        "Medicaid_managedcare_enrollment_report",
                        "by_program_pop_from_report") 
 
-
+# Extract tables from pdf
 pages <- pdf_text(pdf_path)[c(19, 20)]
+
+# Store text in a list of lists
 list_data <- lapply(pages, pdf_to_list)
+
+# Align columns 
 df <- shift_columns(list_data[[1]])
 df2 <- shift_columns(list_data[[2]])
 
+# Filter out empty strings and remove the first two rows (df) and first row (df2)
 df <- df %>%
   filter(across(everything(), ~ . != "")) %>%
   slice(-c(1:2))
@@ -90,11 +96,14 @@ df2 <- df2 %>%
   filter(across(everything(), ~ . != "")) %>%
   slice(-1)
 
+# Combine dataframes
 df3 <- rbind(df, df2)
 
+# Change column names
 names(df3) <- c("state", "total_med_enr","comp_mco", "pccm", "mltss",
                 "bho", "dental", "transportation", "pace", "other")
 
+# Remove footnote numbers that follow state names
 df3$state <- gsub("[0-9]+$", "", df3$state)
 
 # Replace '--' and 'n/a' with NA
@@ -109,21 +118,25 @@ write_csv(df3, file = paste0(save_path, "/data_2015.csv"))
 
 pdf_path <- file.path(getwd(), "Input_Data", 
                       "Medicaid_managedcare_enrollment_report",
+                      "reports",
                       "2014-medicaid-managed-care-enrollment-report_0.pdf")
 
+# Extract pages with the tables
 pages <- pdf_text(pdf_path)[c(20, 21)]
 list_data <- lapply(pages, pdf_to_list)
 
+# Transform as dataframe
 df <- as.data.frame(do.call(rbind, list_data[[1]]))
 df2 <- as.data.frame(do.call(rbind, list_data[[2]]))
 
-
+# Omit unnecessary rows
 df <- df[-c(1:5, 46), ]
-
 df2 <- df2[-c(1:4, 21:30), ]
 
+# Combine the two tables
 df3 <- rbind(df, df2)
 
+# Change variable names
 names(df3) <- c("state", "total_med_enr","comp_mco", "pccm", "mltss",
                 "bho", "dental", "transportation", "pace", "other")
 
@@ -133,8 +146,10 @@ df3[df3 == "--" | df3 == "n/a"] <- NA
 # Convert character numbers to numeric for all columns
 df3[-1] <- lapply(df3[-1], function(x) as.numeric(gsub(",", "", x)))
 
+# Omit footnote numbers that follow the state name
 df3$state <- gsub("[0-9]", "", df3$state)
 
+# Save
 write_csv(df3, file = paste0(save_path, "/data_2014.csv"))
 
 
@@ -142,20 +157,25 @@ write_csv(df3, file = paste0(save_path, "/data_2014.csv"))
 
 pdf_path <- file.path(getwd(), "Input_Data", 
                       "Medicaid_managedcare_enrollment_report",
+                      "reports",
                       "2013 Medicaid Report.pdf")
 
+# Extract tables from pdf
 pages <- pdf_text(pdf_path)[c(9, 10)]
 list_data <- lapply(pages, pdf_to_list)
 
+# Transform into dataframe
 df <- as.data.frame(do.call(rbind, list_data[[1]]))
 df2 <- as.data.frame(do.call(rbind, list_data[[2]]))
 
+# Omit unnecessary rows
 df <- df[-c(1:4, 47), ]
-
 df2 <- df2[-c(1:4, 19:26), ]
 
+# Combine dfs
 df3 <- rbind(df, df2)
 
+# Change variable names
 names(df3) <- c("state", "total_med_enr","comp_mco", "pccm", "mltss",
                 "bho", "dental", "transportation", "pace", "other")
 
@@ -171,34 +191,41 @@ write_csv(df3, file = paste0(save_path, "/data_2013.csv"))
 
 pdf_path <- file.path(getwd(), "Input_Data", 
                       "Medicaid_managedcare_enrollment_report",
+                      "reports",
                       "2011-medicaid-mc-enrollment-report.pdf")
 
+# Extract tables from pdf
 pages <- pdf_text(pdf_path)[c(7, 8)]
 list_data <- lapply(pages, pdf_to_list)
 
+# Transform into dataframe
 df <- as.data.frame(do.call(rbind, list_data[[1]]))
 df2 <- as.data.frame(do.call(rbind, list_data[[2]]))
 
+# Omit unnecessary rows and change variable names
 df <- df %>%
   select(V3, V4) %>%
   slice(-c(1:3), -c(57:61)) %>%
   rename(state = V3,
          total_med_enr = V4)
 
+# Apply string formatting
 df$state <- str_to_title(df$state)
 df$state <- gsub("District Of Columbia", "Dist of Columbia", df$state)
 df$total_med_enr <- gsub(",", "", df$total_med_enr)
 df$total_med_enr <- as.numeric(df$total_med_enr)
 
-
-
+# Realign table
 df2 <- df2[-c(1:3, 57:61), -10]
 
+# Change variable names
 names(df2) <- c("state", "hio","commercial_mco", "med_only_mco", "pccm",
                 "pihp", "pahp", "pace", "other")
 
+# For numeric columns, remove commas and transform into numeric
 df2[-1] <- lapply(df2[-1], function(x) as.numeric(gsub(",", "", x)))
 
+# Merge
 df3 <- left_join(df2, df, by = "state")
 
 write_csv(df3, file = paste0(save_path, "/data_2011.csv"))
