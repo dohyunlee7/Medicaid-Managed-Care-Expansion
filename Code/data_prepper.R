@@ -79,12 +79,82 @@ process_comp_mco_list <- function(data) {
   return(df)
 }
 
+#' Clean lines and split by commas
+#' @param file_name text file
+#' @return cleaned dataframe
+clean_and_split <- function(file_name) {
+  # Read the file as raw lines
+  lines <- readLines(file_name)
+  
+  # Filter lines that contain a valid state name
+  filtered_lines <- lines[sapply(lines, function(line) {
+    any(sapply(state_names, grepl, line))
+  })]
+  
+  # Split the remaining lines by commas
+  cleaned_data <- do.call(rbind, lapply(filtered_lines, function(line) {
+    unlist(strsplit(line, ","))
+  }))
+  
+  # Convert to data frame
+  df <- as.data.frame(cleaned_data, stringsAsFactors = FALSE)
+  
+  # Extract year from file name and add as a new column
+  year <- as.numeric(gsub(".*_(\\d{4})\\.csv$", "\\1", file_name))
+  df$year <- year
+  
+  return(df)
+}
+
+#' Fill in missing values in panel with other dataframes
+#' @param main_data the main panel
+#' @param join_data smaller dataset used to join
+#' @param by_cols vector of column names to join by (should be state and year)
+#' @param coalesce_cols vector of column names to be joined into panel
+#' @param reorder_cols vector of column names to order columns
+#' @return panel data with needed values filled in
+coalesce_join <- function(main_data, 
+                          join_data, 
+                          by_cols, 
+                          coalesce_cols, 
+                          reorder_cols = NULL) {
+  
+  # Join and coalesce specified columns
+  main_data <- main_data %>%
+    left_join(join_data, by = by_cols)
+  
+  # Coalesce columns 
+  for (col in coalesce_cols) {
+    main_data <- main_data %>%
+      mutate(!!col := coalesce(.[[paste0(col, ".x")]], .[[paste0(col, ".y")]]))
+  }
+  
+  # Drop both copies of the variable value
+  main_data <- main_data %>%
+    select(-matches("\\.x$"), -matches("\\.y$"))
+    
+  # Reorder columns if a specific order is provided
+  if (!is.null(reorder_cols)) {
+    main_data <- main_data %>%
+      select(any_of(reorder_cols), everything())
+  }
+  
+  # Arrange by state and year
+  main_data <- main_data %>%
+    arrange(across(all_of(by_cols)))
+  
+  return(main_data)
+}
+
+
+
 
 ### ---------------------------- READ IN DATA ------------------------------ ###
 
 library(dplyr)
 library(haven)
 library(datasets)
+library(readxl)
 library(tidyverse)
 
 path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
@@ -161,7 +231,7 @@ dir_path <- paste0(path,
                              "by_program_pop_from_report"))
 
 # Get vector of years we have for MC enrollment from report PDFs
-years <- setdiff(2008:2022, 2012)
+years <- setdiff(2006:2022, c(2007, 2012))
 
 # Get vector of file names and use apply function to read in files in one line
 file_names <- paste0(dir_path, "/data_", years, ".csv")
@@ -225,7 +295,7 @@ clean_new_data_list <- lapply(names(clean_new_data_list), function(year) {
   df <- clean_new_data_list[[year]]
   
   # Add 'comprehensive_mco_enr' column for years 2008-2011
-  if (as.numeric(year) %in% 2008:2011) {
+  if (as.numeric(year) %in% setdiff(2006:2011, 2007)) {
     df$comprehensive_mco_enr <- NA  # Add empty column
   }
   
@@ -400,31 +470,6 @@ comp_file_names <- paste0(comp_path, "/raw_data_", years, ".csv")
 # Get names of states
 state_names <- c(state.name, "District of Columbia")
 
-# Function to clean lines and split by commas
-clean_and_split <- function(file_name) {
-  # Read the file as raw lines
-  lines <- readLines(file_name)
-  
-  # Filter lines that contain a valid state name
-  filtered_lines <- lines[sapply(lines, function(line) {
-    any(sapply(state_names, grepl, line))
-  })]
-  
-  # Split the remaining lines by commas
-  cleaned_data <- do.call(rbind, lapply(filtered_lines, function(line) {
-    unlist(strsplit(line, ","))
-  }))
-  
-  # Convert to data frame
-  df <- as.data.frame(cleaned_data, stringsAsFactors = FALSE)
-  
-  # Extract year from file name and add as a new column
-  year <- as.numeric(gsub(".*_(\\d{4})\\.csv$", "\\1", file_name))
-  df$year <- year
-  
-  return(df)
-}
-
 comp_mco_list <- lapply(comp_file_names, clean_and_split)
 
 names(comp_mco_list) <- years
@@ -480,59 +525,22 @@ mc_enr_07$year <- 2007
 # Row bind the two datasets
 mc_enr_bind <- rbind(mc_enr_06, mc_enr_07)
 
-# Merge the 2006-07 enrollment data to the main panel
-new_merged_data <- new_merged_data %>%
-  left_join(mc_enr_bind, by = c("state", "year")) %>%
-  mutate(total_med_enr = coalesce(total_med_enr.x,
-                                  total_med_enr.y),
-         mltss = coalesce(mltss.x,
-                          mltss.y),
-         dental = coalesce(dental.x,
-                           dental.y),
-         pccm = coalesce(pccm.x,
-                         pccm.y),
-         bho = coalesce(bho.x,
-                        bho.y),
-         pace = coalesce(pace.x,
-                         pace.y),) %>%
-  select(-total_med_enr.x,
-         -total_med_enr.y,
-         -mltss.x,
-         -mltss.y,
-         -dental.x,
-         -dental.y,
-         -pccm.x,
-         -pccm.y,
-         -bho.x,
-         -bho.y,
-         -pace.x,
-         -pace.y)
+# Vector of column names in desired order
+reorder_cols <- c("state", "year", "total_med_enr", "managed_care_enrollment", 
+                  "pct_in_managed_care", "comprehensive_mco_enr", "hio", 
+                  "commercial_mco", "medicaid_only_mco", "pccm", "pccm_entity", 
+                  "bho", "pihp", "pahp", "bho_pihp_andor_pahp", "mltss", 
+                  "mltss_only", "dental", "transportation", 
+                  "imputed_any_mco_enr")
 
-# Reorder columns (by enrollment numbers first then spending variables)
-# and rows (by state, year)
-new_merged_data <- new_merged_data %>%
-  select(state,
-         year,
-         total_med_enr,
-         managed_care_enrollment,
-         pct_in_managed_care,
-         comprehensive_mco_enr,
-         hio,
-         commercial_mco,
-         medicaid_only_mco,
-         pccm,
-         pccm_entity,
-         bho,
-         pihp,
-         pahp,
-         bho_pihp_andor_pahp,
-         mltss,
-         mltss_only,
-         dental,
-         transportation,
-         imputed_any_mco_enr,
-         everything()) %>%
-  arrange(state, year)
+# Coalesce 2006 and 2007 values
+new_merged_data <- coalesce_join(
+  main_data = new_merged_data,
+  join_data = mc_enr_bind,
+  by_cols = c("state", "year"),
+  coalesce_cols = c("total_med_enr", "mltss", "dental", "pccm", "bho", "pace"),
+  reorder_cols = reorder_cols
+)
 
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
 
@@ -546,69 +554,21 @@ enr_2012 <- read_csv(paste0(path,
                                       "claims",
                                       "enrollment_2012.csv")))
 
+# Lower case variable names
 names(enr_2012) <- tolower(names(enr_2012))
 
+# Get enrollment figures from 2012 claims
 mc_enr_12 <- enr_getter(enr_2012)
 mc_enr_12$year <- 2012
 
-new_merged_data <- new_merged_data %>%
-  left_join(mc_enr_12, by = c("state", "year")) %>%
-  mutate(total_med_enr = coalesce(total_med_enr.x,
-                                  total_med_enr.y),
-         comprehensive_mco_enr = coalesce(comprehensive_mco_enr.x,
-                                          comprehensive_mco_enr.y),
-         mltss = coalesce(mltss.x,
-                          mltss.y),
-         dental = coalesce(dental.x,
-                           dental.y),
-         pccm = coalesce(pccm.x,
-                         pccm.y),
-         bho = coalesce(bho.x,
-                        bho.y),
-         pace = coalesce(pace.x,
-                         pace.y)) %>%
-  select(-total_med_enr.x,
-         -total_med_enr.y,
-         -comprehensive_mco_enr.x,
-         -comprehensive_mco_enr.y,
-         -mltss.x,
-         -mltss.y,
-         -dental.x,
-         -dental.y,
-         -pccm.x,
-         -pccm.y,
-         -bho.x,
-         -bho.y,
-         -pace.x,
-         -pace.y)
-
-# Reorder columns (by enrollment numbers first then spending variables)
-# and rows (by state, year)
-new_merged_data <- new_merged_data %>%
-  select(state,
-         year,
-         total_med_enr,
-         managed_care_enrollment,
-         pct_in_managed_care,
-         comprehensive_mco_enr,
-         hio,
-         commercial_mco,
-         medicaid_only_mco,
-         pccm,
-         pccm_entity,
-         bho,
-         pihp,
-         pahp,
-         bho_pihp_andor_pahp,
-         mltss,
-         mltss_only,
-         dental,
-         pace,
-         other,
-         transportation,
-         imputed_any_mco_enr,
-         everything()) %>%
-  arrange(state, year)
+# Coalesce 2012 values
+new_merged_data <- coalesce_join(
+  main_data = new_merged_data,
+  join_data = mc_enr_12,
+  by_cols = c("state", "year"),
+  coalesce_cols = c("total_med_enr", "mltss", "dental", "pccm", "bho", "pace"),
+  reorder_cols = reorder_cols
+)
 
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
 
@@ -627,6 +587,71 @@ new_merged_data <- new_merged_data %>%
                                           `total schip (ct + st)`))
 
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
+
+### -------------- Append enrollment numbers for 1991 - 1995 --------------- ###
+
+new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
+
+data_91_95 <- read_dta(paste0(path, file.path("/Input_Data",
+                                              "Medicaid_managedcare_enrollment_report",
+                                              "external",
+                                              "fymcdben.dta")))
+
+# Extend state.abb and state.name with DC information
+state.abb <- c(state.abb, "DC")
+state.name <- c(state.name, "District of Columbia")
+
+# Match state abbreviations to state names 
+data_91_95$state <- state.name[match(data_91_95$state, state.abb)]
+
+# Keep years 1991 - 1995, rename variable name for enrollment
+data_91_95 <- data_91_95 %>%
+  filter(year %in% 1991:1995) %>%
+  rename(total_med_enr = fymcdben)
+
+# Append total Medicaid enrollment from 1991-1995 to panel
+new_merged_data <- coalesce_join(
+  main_data = new_merged_data,
+  join_data = data_91_95,
+  by_cols = c("state", "year"),
+  coalesce_cols = c("total_med_enr"),
+  reorder_cols = reorder_cols
+)
+
+###--------------------- Adjust spending to 2023 dollars ------------------- ###
+
+# Read in CPI to adjust for inflation
+bls <- read_xlsx(paste0(path, "/Input_Data/Inflation_BLS/SeriesReport-20240326212745_31976f.xlsx"))
+
+# Omit rows with more than 2 NAs per row
+bls <- bls[rowSums(is.na(bls)) <= 2, ]
+
+# Set first row as variable names 
+names(bls) <- bls[1, ]
+
+# Lower case variable names
+names(bls) <- tolower(names(bls))
+
+# Omit the first row after naming
+bls <- bls[-1, ]
+
+# Clean year character formatting
+bls$year <- gsub("\\.0$", "", bls$year)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

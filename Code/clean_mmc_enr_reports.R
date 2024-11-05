@@ -1,6 +1,8 @@
 #'
 #' clean_mmc_enr_reports.R -- Clean MMC enrollment reports into CSV files
-#'                            clean up more later -- functionalize everything
+#'                            Not functionalized due to reports for different
+#'                            years being formatted differently. PDF tables
+#'                            have similar structure, but get read in differently
 #'
 
 ### ----------------------------- FUNCTIONS -------------------------------- ###
@@ -20,6 +22,94 @@ pdf_to_list <- function(text) {
   return(list_data)
 }
 
+#' Function to process and clean the PDF enrollment tables for total Medicaid
+#' enrollment and Managed Care enrollment
+#' @param pdf_text PDF text
+#' @param row_remove specific rows to remove (numeric)
+#' @param col_remove specific columns to remove (numeric)
+#' @param new_col_names new column names for table
+#' @param comma_columns column with commas to remove in the values
+#' @param percent_columns columns with percent signs to remove in the values
+process_mmc_data <- function(pdf_text, 
+                             row_remove = NULL, 
+                             col_remove = NULL, 
+                             new_col_names = NULL, 
+                             comma_columns = NULL, 
+                             percent_columns = NULL) {
+  # Convert PDF to list of text lines
+  mmc_list <- pdf_to_list(pdf_text)
+  
+  # Consolidate list text into data frame
+  mmc_df <- as.data.frame(do.call(rbind, mmc_list))
+  
+  # Remove specified rows and columns if provided
+  if (!is.null(row_remove)) {
+    mmc_df <- mmc_df[-row_remove, ]
+  }
+  if (!is.null(col_remove)) {
+    mmc_df <- mmc_df[, -col_remove]
+  }
+  
+  # Rename columns if new names are provided
+  if (!is.null(new_col_names)) {
+    names(mmc_df) <- new_col_names
+  }
+  
+  # Clean up number formatting
+  mmc_df <- mmc_df %>%
+    mutate(across(all_of(comma_columns), ~ as.numeric(gsub(",", "", .)))) %>%
+    mutate(across(all_of(percent_columns), ~ as.numeric(gsub("%", "", .)) / 100))
+  
+  # Title case state names
+  mmc_df$state <- str_to_title(mmc_df$state)
+  
+  return(mmc_df)
+}
+
+#' Function to process and clean the PDF enrollment tables for each Medicaid 
+#' entity
+#' @param pdf_text PDF text
+#' @param row_remove specific rows to remove (numeric)
+#' @param col_remove specific columns to remove (numeric)
+#' @param new_col_names new column names for table
+#' @param cleanup_commas 
+process_mmc_entity_data <- function(pdf_text, 
+                                    row_remove = NULL, 
+                                    col_remove = NULL, 
+                                    new_col_names = NULL, 
+                                    cleanup_commas = TRUE) {
+  # Convert PDF to list of text lines
+  mmc_list <- pdf_to_list(pdf_text)
+  
+  # Convert list to a data frame
+  mmc_df <- as.data.frame(do.call(rbind, mmc_list))
+  
+  # Remove specified rows and columns if provided
+  if (!is.null(row_remove)) {
+    mmc_df <- mmc_df[-row_remove, ]
+  }
+  if (!is.null(col_remove)) {
+    mmc_df <- mmc_df[, -col_remove]
+  }
+  
+  # Rename columns if new names are provided
+  if (!is.null(new_col_names)) {
+    names(mmc_df) <- new_col_names
+  }
+  
+  # Clean up number formatting by removing commas
+  if (cleanup_commas) {
+    mmc_df <- as.data.frame(sapply(mmc_df, function(x) 
+      gsub(",", "", x)), stringsAsFactors = FALSE)
+  }
+  
+  # Title case state names
+  mmc_df$state <- str_to_title(mmc_df$state)
+  
+  return(mmc_df)
+}
+
+
 ### --------------------------- 2010 MMC Reports --------------------------- ###
 
 library(dplyr)
@@ -28,143 +118,129 @@ library(readxl)
 library(tidyverse)
 
 # Change path depending on file
-pdf_path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun", 
-                      "medicaid_privatization_exp", "Input_Data",
-                      "Medicaid_managedcare_enrollment_report",
-                      "MMC Enrollment Report 2010 Complete Program Summary.pdf")
+setwd(file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun", 
+                "medicaid_privatization_exp", "Input_Data",
+                "Medicaid_managedcare_enrollment_report", "reports"))
 
-# Get pages from pdf
-pages <- pdf_text(pdf_path)
-
-# Filter for just the MMC enrollment numbers by state
-pages <- pages[56:57]
-
-# Organize page text into lists
-list_data <- lapply(pages, pdf_to_list)
-
-# Consolidate list text into data frame
-mmc_enr <- as.data.frame(do.call(rbind, list_data[[1]]))
-
-# Remove first two columns and first couple and last rows
-mmc_enr <- mmc_enr[-c(1:3, 57:61), -c(1,2)]
-
-# Rename columns
-names(mmc_enr) <- c("state", 
-                    "total_med_enr",
-                    "managed_care_enrollment",
-                    "pct_in_managed_care")
-
-# Change state names to title case
-mmc_enr$state <- str_to_title(mmc_enr$state)
-
-# Clean up number formatting
-mmc_enr <- mmc_enr %>%
-  mutate(total_med_enr = gsub(",", "", total_med_enr),
-         managed_care_enrollment = gsub(",", "", managed_care_enrollment),
-         pct_in_managed_care = gsub("%", "", pct_in_managed_care)) %>%
-  mutate(total_med_enr = as.numeric(total_med_enr),
-         managed_care_enrollment = as.numeric(managed_care_enrollment),
-         pct_in_managed_care = as.numeric(pct_in_managed_care) / 100)
-
-# Consolidate list text into data frame
-mmc_entity_enr <- as.data.frame(do.call(rbind, list_data[[2]]))
-
-# Remove unneeded rows/columns
-mmc_entity_enr <- mmc_entity_enr[-c(1:3, 57:61), -10]
-
-# Rename column names
-names(mmc_entity_enr) <- c("state",
-                           "hio",
-                           "commercial_mco",
-                           "medicaid_only_mco",
-                           "pccm",
-                           "pihp",
-                           "pahp",
-                           "pace",
-                           "other")
-
-# Omit all commas
-mmc_entity_enr <- as.data.frame(sapply(mmc_entity_enr, function(x) {
-  x <- gsub(",", "", x)
-}))
-
-# Convert columns 2-9 to numeric
-mmc_entity_enr <- mmc_entity_enr %>%
-  mutate(across(2:9, ~as.numeric(.)))
-
-# Change naming for DC
-mmc_entity_enr$state <- str_to_title(mmc_entity_enr$state)
-
-# Join MMC enrollment data and MMC entity enrollment data
-mmc_2010 <- left_join(mmc_enr, mmc_entity_enr, by = "state")
-
-mmc_2010$state <- gsub("District Of Columbia", 
-                       "District of Columbia",
-                       mmc_2010$state)
-
+# Define save path
 save_path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
                        "medicaid_privatization_exp", "Input_Data",
                        "Medicaid_managedcare_enrollment_report",
                        "by_program_pop_from_report")
 
+mmc_2010 <- pdf_text("MMC Enrollment Report 2010 Complete Program Summary.pdf")
+
+# Get page where table for total Medicaid enrollment table lives
+mmc_2010_text <- mmc_2010[56]
+
+# Process total Medicaid and managed care enrollment data
+mmc_2010_df <- process_mmc_data(
+  pdf_text = mmc_2010_text,
+  row_remove = c(1:3, 57:61),
+  col_remove = c(1, 2),
+  new_col_names = c("state", 
+                    "total_med_enr", 
+                    "managed_care_enrollment", 
+                    "pct_in_managed_care"),
+  comma_columns = c("total_med_enr", 
+                    "managed_care_enrollment"),
+  percent_columns = c("pct_in_managed_care")
+)
+
+# Get page where table for Medicaid enrollment by entity type table lives
+mmc_entity_2010_text <- mmc_2010[57]
+
+# Process Medicaid enrollment by entity type
+mmc_entity_2010_df <- process_mmc_entity_data(
+  pdf_text = mmc_entity_2010_text,
+  row_remove = c(1:3, 57:61),
+  col_remove = 10,
+  new_col_names = c("state", "hio", "commercial_mco", "medicaid_only_mco", 
+                    "pccm", "pihp", "pahp", "pace", "other")
+)
+
+# Convert columns 2-9 to numeric
+mmc_entity_2010_df <- mmc_entity_2010_df %>%
+  mutate(across(2:9, ~as.numeric(.)))
+
+mmc_entity_2010_df$state <- gsub("Dist Of Columbia",
+                                 "District Of Columbia",
+                                 mmc_entity_2010_df$state)
+
+# Join MMC enrollment data and MMC entity enrollment data
+mmc_2010 <- left_join(mmc_2010_df, mmc_entity_2010_df, by = "state")
+
+mmc_2010$state <- gsub("District Of Columbia", 
+                       "District of Columbia",
+                       mmc_2010$state)
+
 write_csv(mmc_2010, paste0(save_path, "/data_2010.csv"))
+
+### ------------------------- 2009 MMC Enrollment -------------------------- ###
+
+mmc_2009 <- pdf_text("2009_medicaid_managed_care_reports/2009_mmc_enrollment.pdf")
+
+mmc_2009_df <- process_mmc_data(
+  pdf_text = mmc_2009,
+  row_remove = c(1:3, 57:61),
+  col_remove = c(1, 2),
+  new_col_names = c("state", "total_med_enr", "managed_care_enrollment", "pct_in_managed_care"),
+  comma_columns = c("total_med_enr", "managed_care_enrollment"),
+  percent_columns = c("pct_in_managed_care")
+)
+
+# Get pdf text table for MMC entity enrollment
+mmc_entity_2009 <- pdf_text("2009_medicaid_managed_care_reports/2009_mmc_entity_enrollment.pdf")
+
+# Process MMC entity enrollment
+mmc_entity_2009_df <- process_mmc_entity_data(
+  pdf_text = mmc_entity_2009,
+  row_remove = c(1:3, 57:61),
+  col_remove = 10,
+  new_col_names = c("state", "hio", "commercial_mco", "medicaid_only_mco", 
+                    "pccm", "pihp", "pahp", "pace", "other")
+)
+
+# Join the two dataframes by state name
+mmc_2009_full <- left_join(mmc_2009_df, mmc_entity_2009_df, by = "state")
+
+# Change name for DC
+mmc_2009_full$state <- gsub("District Of Columbia", 
+                            "District of Columbia",
+                            mmc_2009_full$state)
+
+# Save data for 2009
+write_csv(mmc_2009_full, paste0(save_path, "/data_2009.csv"))
 
 ### -------------------------- 2008 MMC enrollment ------------------------- ###
 
-# Change path depending on file
-setwd(file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun", 
-                "medicaid_privatization_exp", "Input_Data",
-                "Medicaid_managedcare_enrollment_report"))
-
 mmc_2008 <- pdf_text("2008_medicaid_managed_care_reports/2008_mmc_enrollment.pdf")
 
-# Organize page text into lists
-mmc_2008_list <- pdf_to_list(mmc_2008)
+# Process total Medicaid and managed care enrollment data
+mmc_2008_df <- process_mmc_data(
+  pdf_text = mmc_2008,
+  row_remove = c(1:3, 29:33, 61:64),
+  col_remove = c(1, 2),
+  new_col_names = c("state", 
+                    "total_med_enr", 
+                    "managed_care_enrollment", 
+                    "pct_in_managed_care"),
+  comma_columns = c("total_med_enr", 
+                    "managed_care_enrollment"),
+  percent_columns = c("pct_in_managed_care")
+)
 
-# Consolidate list text into data frame
-mmc_2008_df <- as.data.frame(do.call(rbind, mmc_2008_list))
-
-mmc_2008_df <- mmc_2008_df[-c(1:3, 61:64), -c(1:2)]
-
-mmc_2008_df <- mmc_2008_df[rowSums(mmc_2008_df == "") == 0, ]
-
-names(mmc_2008_df) <- c("state",
-                        "total_med_enr",
-                        "managed_care_enrollment",
-                        "pct_in_managed_care")
-
-mmc_2008_df <- mmc_2008_df %>%
-  mutate(total_med_enr = gsub(",", "", total_med_enr),
-         managed_care_enrollment = gsub(",", "", managed_care_enrollment),
-         pct_in_managed_care = gsub("%", "", pct_in_managed_care)) %>%
-  mutate(total_med_enr = as.numeric(total_med_enr),
-         managed_care_enrollment = as.numeric(managed_care_enrollment),
-         pct_in_managed_care = as.numeric(pct_in_managed_care) / 100)
-
-mmc_2008_df$state <- str_to_title(mmc_2008_df$state)
-
+# Get pdf table for Medicaid enrollment by entity
 mmc_entity_2008 <- pdf_text("2008_medicaid_managed_care_reports/2008_mmc_entity_enrollment.pdf")
 
-mmc_entity_2008_list <- pdf_to_list(mmc_entity_2008)
-
-mmc_entity_2008_df <- as.data.frame(do.call(rbind, mmc_entity_2008_list))
-
-mmc_entity_2008_df <- mmc_entity_2008_df[-c(1:3, 60:63), -10]
-
-names(mmc_entity_2008_df) <- c("state",
-                               "hio",
-                               "commercial_mco",
-                               "medicaid_only_mco",
-                               "pccm",
-                               "pihp",
-                               "pahp",
-                               "pace",
-                               "other")
-
-# Omit all commas
-mmc_entity_2008_df <- as.data.frame(sapply(mmc_entity_2008_df, function(x) {
-  x <- gsub(",", "", x)
-}))
+# Get page where the table lives
+mmc_entity_2008_df <- process_mmc_entity_data(
+  pdf_text = mmc_entity_2008,
+  row_remove = c(1:3, 60:63),
+  col_remove = 10,
+  new_col_names = c("state", "hio", "commercial_mco", "medicaid_only_mco", 
+                    "pccm", "pihp", "pahp", "pace", "other")
+)
 
 # Extracting data for Missouri somehow gets messed up -- manually handle
 mmc_entity_2008_df <- mmc_entity_2008_df[-grep("Missour|^$", 
@@ -190,89 +266,70 @@ missouri <- data.frame(
 )
 
 # Append manually handled dataframe for Missouri onto the main working table
-mmc_2008_full <- rbind(mmc_entity_2008_df, missouri)
+mmc_2008_full <- rbind(mmc_2008_full, missouri)
 
 mmc_2008_full <- mmc_2008_full[order(mmc_2008_full$state), ]
 
 mmc_2008_full$state <- gsub("Dist. Of Columbia",
                             "District of Columbia",
                             mmc_2008_full$state)
-df3[-1] <- lapply(df3[-1], function(x) as.numeric(gsub(",", "", x)))
 
 write_csv(mmc_2008_full, paste0(save_path, "/data_2008.csv"))
 
-### ------------------------- 2009 MMC Enrollment -------------------------- ###
 
-mmc_2009 <- pdf_text("2009_medicaid_managed_care_reports/2009_mmc_enrollment.pdf")
+### -------------------------- 2006 MMC Enrollment ------------------------- ###
 
-# Organize page text into lists
-mmc_2009_list <- pdf_to_list(mmc_2009)
+# Get PDF text table for Medicaid enrollment
+mmc_2006 <- pdf_text("2006-medicaid-managed-care-enrollment-report.pdf")
 
-# Consolidate list text into data frame
-mmc_2009_df <- as.data.frame(do.call(rbind, mmc_2009_list))
+# Get page where the table lives
+mmc_2006_text <- mmc_2006[7]
 
-# Remove unneeded rows
-mmc_2009_df <- mmc_2009_df[-c(1:3, 57:61), -c(1,2)]
+mmc_2006_df <- process_mmc_data(
+  pdf_text = mmc_2006_text,
+  row_remove = c(1:3, 57:61),
+  col_remove = c(1, 2),
+  new_col_names = c("state", 
+                    "total_med_enr", 
+                    "managed_care_enrollment", 
+                    "pct_in_managed_care"),
+  comma_columns = c("total_med_enr", 
+                    "managed_care_enrollment"),
+  percent_columns = c("pct_in_managed_care")
+)
 
-# Rename variables
-names(mmc_2009_df) <- c("state",
-                        "total_med_enr",
-                        "managed_care_enrollment",
-                        "pct_in_managed_care")
+# Get PDF text table for MMC entity enrollment
+mmc_entity_2006_text <- mmc_2006[8]
 
-# Clean up number formatting 
-mmc_2009_df <- mmc_2009_df %>%
-  mutate(total_med_enr = gsub(",", "", total_med_enr),
-         managed_care_enrollment = gsub(",", "", managed_care_enrollment),
-         pct_in_managed_care = gsub("%", "", pct_in_managed_care)) %>%
-  mutate(total_med_enr = as.numeric(total_med_enr),
-         managed_care_enrollment = as.numeric(managed_care_enrollment),
-         pct_in_managed_care = as.numeric(pct_in_managed_care) / 100)
-
-# Apply string formatting to state names
-mmc_2009_df$state <- str_to_title(mmc_2009_df$state)
-
-# Get pdf text table for MMC entity enrollment
-mmc_entity_2009 <- pdf_text("2009_medicaid_managed_care_reports/2009_mmc_entity_enrollment.pdf")
-
-# Convert pdf text to a list where each line of text is a sublist
-mmc_entity_2009_list <- pdf_to_list(mmc_entity_2009)
-
-# Convert to dataframe
-mmc_entity_2009_df <- as.data.frame(do.call(rbind, mmc_entity_2009_list))
-
-# Tidy up formatting by omitting unneeded rows and column
-mmc_entity_2009_df <- mmc_entity_2009_df[-c(1:3, 57:61), -10]
-
-# Give columns the appropriate names
-names(mmc_entity_2009_df) <- c("state",
-                               "hio",
-                               "commercial_mco",
-                               "medicaid_only_mco",
-                               "pccm",
-                               "pihp",
-                               "pahp",
-                               "pace",
-                               "other")
-
-# Omit all commas
-mmc_entity_2009_df <- as.data.frame(sapply(mmc_entity_2009_df, function(x) {
-  x <- gsub(",", "", x)
-}))
-
-# Neatly format state names
-mmc_entity_2009_df$state <- str_to_title(mmc_entity_2009_df$state)
+mmc_entity_2006_df <- process_mmc_entity_data(
+  pdf_text = mmc_entity_2006_text,
+  row_remove = c(1:3, 57:61),
+  col_remove = 10,
+  new_col_names = c("state", "hio", "commercial_mco", "medicaid_only_mco", 
+                    "pccm", "pihp", "pahp", "pace", "other")
+)
 
 # Join the two dataframes by state name
-mmc_2009_full <- left_join(mmc_2009_df, mmc_entity_2009_df, by = "state")
+mmc_2006_full <- left_join(mmc_2006_df, mmc_entity_2006_df, by = "state")
 
 # Change name for DC
-mmc_2009_full$state <- gsub("District Of Columbia", 
+mmc_2006_full$state <- gsub("District Of Columbia", 
                             "District of Columbia",
-                            mmc_2009_full$state)
+                            mmc_2006_full$state)
+# Save data for 2006
+write_csv(mmc_2006_full, paste0(save_path, "/data_2006.csv"))
 
-# Save data for 2009
-write_csv(mmc_2009_full, paste0(save_path, "/data_2009.csv"))
+
+
+
+
+
+
+
+
+
+
+
 
 
 
