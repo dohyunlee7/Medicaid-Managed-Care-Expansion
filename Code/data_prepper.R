@@ -686,7 +686,28 @@ new_merged_data <- coalesce_join(
 
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
 
-### ------------------------ Integrate mandate data ------------------------ ###
+### ---------- Integrate mandate data and county-level Census data --------- ###
+
+# Read in county level mandate level
+mandate <- read_dta(paste0(path, file.path("/Input_Data",
+                                           "Medicaid_managedcare_enrollment_report",
+                                           "external",
+                                           "uimmc.dta")))
+
+# Read in county-level Census population data for 2000-2010
+census_2000 <- read_csv(paste0(path, file.path("/Input_Data",
+                                               "Medicaid_managedcare_enrollment_report",
+                                               "census",
+                                               "co-est00int-tot.csv")))
+
+# Lower case variable names
+names(census_2000) <- tolower(names(census_2000))
+
+# Select variables
+census_2000 <- census_2000 %>%
+  select(stname, ctyname, popestimate2000)
+
+
 
 ### ---------------------- Adjust spending for inflation ------------------- ###
 
