@@ -5,7 +5,7 @@ library(pubtheme)
 library(tidyverse)
 
 #d <- readRDS("full_table_with_proportions.rds")
-d <- readRDS("new_merged_panel.rds")
+d <- readRDS("new_merged_panel_inflation_adj.rds")
 
 # Remove DC and Puerto Rico
 d <- d %>%
@@ -66,7 +66,7 @@ server <- function(input, output) {
       labs(title = "Total Medicaid Spending Over Time by State",
            subtitle = "1991 - 2023",
            x = "Year",
-           y = "Total Medicaid Spending in USD (Billions)") +
+           y = "Total Medicaid Spending in USD (Billions in 2023 Dollars)") +
       scale_x_continuous(breaks = seq(1990, 2023, by = 2)) +
       scale_y_continuous(labels = scales::comma) +
       theme_pub()

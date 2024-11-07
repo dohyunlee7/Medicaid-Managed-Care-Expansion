@@ -18,32 +18,21 @@ d1 <- read_dta(paste0(path, "/Input_Data/Medicaid_managedcare_enrollment_report/
 
 mandate <- read_dta(paste0(path, "/Input_Data/Medicaid_managedcare_enrollment_report/external/uimmc.dta"))
 
-d1 <- d1 %>%
-  filter(state != "XX") %>%
-  filter(year %in% 1991:1995)
+data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
 
-# Extend state.abb and state.name with DC information
-state.abb <- c(state.abb, "DC")
-state.name <- c(state.name, "District of Columbia")
+data <- data %>%
+  filter(year %in% 1991:2009) %>%
+  filter(state != "Puerto Rico")
 
-# Match state abbreviations to state names 
-d1$state <- state.name[match(d1$state, state.abb)]
-
-filled_data_91_05 <- data_91_05 %>%
-  left_join(d1, by = c(c(`State name` = "state"), c(`Fiscal year` = "year"))) %>%
-  mutate(`Medicaid enrollment, as of June 30` = coalesce(`Medicaid enrollment, as of June 30`,
-                                                         fymcdben))
-filled_data_91_05 <- filled_data_91_05 %>%
-  select(-fymcdben)
 
 
 ### ------------------------------- Table 1 -------------------------------- ###
 
-df_agg <- filled_data_91_05 %>%
-  group_by(`Fiscal year`) %>%
+df_agg <- data %>%
+  group_by(year) %>%
   summarise(
-    total_med_enr = sum(`Medicaid enrollment, as of June 30`),
-    total_mmc_enr = sum(`Managed care enrollment, as of June 30`),
+    total_med_enr = sum(total_med_enr),
+    total_mmc_enr = sum(managed_care_enrollment),
     pct_in_mmc = scales::percent(total_mmc_enr / total_med_enr, accuracy = 0.1)
   )
 
