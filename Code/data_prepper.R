@@ -686,6 +686,32 @@ new_merged_data <- coalesce_join(
 
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
 
+# Read managed care enrollment from 1991-1995
+mc91_05 <- read_dta(paste0(path, file.path("/Input_Data",
+                                           "Medicaid_managedcare_enrollment_report",
+                                           "external",
+                                           "mc91_05.dta")))
+
+mc91_05$state <- state.name[match(mc91_05$state, state.abb)]
+
+new_mc91_05 <- mc91_05 %>%
+  select(state, year, undup_tot) %>%
+  filter(year %in% 1991:1994)
+
+new_mc91_05$state <- state.name[match(new_mc91_05$state, state.abb)]
+
+new_merged_data <- new_merged_data %>%
+  left_join(new_mc91_05, by = c("state", "year")) %>%
+  mutate(managed_care_enrollment = coalesce(managed_care_enrollment,
+                                            undup_tot))
+
+new_merged_data <- new_merged_data %>%
+  mutate(pct_in_managed_care = managed_care_enrollment / total_med_enr)
+
+saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
+
+
+
 ### ---------- Integrate mandate data and county-level Census data --------- ###
 
 # Read in county level mandate level
@@ -706,6 +732,25 @@ names(census_2000) <- tolower(names(census_2000))
 # Select variables
 census_2000 <- census_2000 %>%
   select(stname, ctyname, popestimate2000)
+
+census_2000$ctyname <- tolower(census_2000$ctyname)
+
+# Add " county" at the end of string if it doesn't contain "State of" or DC
+mandate$county97 <- ifelse(
+  grepl("State of|DISTRICT OF COLUMBIA", mandate$county97),
+  mandate$county97,
+  paste0(mandate$county97, " county")
+)
+
+mandate$county97 <- tolower(mandate$county97)
+
+mandate$county97 <- gsub("state of ", "", mandate$county97)
+
+mandate_pop <- left_join(census_2000, 
+                         mandate, 
+                         by = c("stname" = "stname97", "ctyname" = "county97"))
+
+
 
 
 

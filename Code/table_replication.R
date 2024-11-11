@@ -31,8 +31,8 @@ data <- data %>%
 df_agg <- data %>%
   group_by(year) %>%
   summarise(
-    total_med_enr = sum(total_med_enr),
-    total_mmc_enr = sum(managed_care_enrollment),
+    total_med_enr = sum(total_med_enr, na.rm = TRUE),
+    total_mmc_enr = sum(managed_care_enrollment, na.rm = TRUE),
     pct_in_mmc = scales::percent(total_mmc_enr / total_med_enr, accuracy = 0.1)
   )
 
@@ -41,21 +41,40 @@ df_agg
 
 ### ------------------------------- Table 2 -------------------------------- ###
 
-filled_data_91_05 <- filled_data_91_05 %>%
-  filter(!`Fiscal year` %in% c(2004, 2005))
+pct_91 <- data %>%
+  filter(year == 1991) %>%
+  select(state, year, pct_in_managed_care)
 
-pct_03 <- filled_data_91_05 %>%
-  filter(`Fiscal year` == 2003) %>%
-  select(`State name`, `Fiscal year`, `Percent enrolled in managed care`)
+pct_03 <- data %>%
+  filter(year == 2003) %>%
+  select(state, year, pct_in_managed_care)
+
+pct_09 <- data %>%
+  filter(year == 2009) %>%
+  select(state, year, pct_in_managed_care)
   
 
 
-### ------------------------------ Table 4 --------------------------------- ###
+### ------------------------------------------------------------------------ ###
 
+mcd <- read_dta(paste0(path, file.path("/Input_Data",
+                                       "Medicaid_managedcare_enrollment_report",
+                                       "external",
+                                       "mc91_05.dta")))
 
+mcd <- mcd %>%
+  filter(state != "XX")
 
+data <- data %>%
+  filter(state != "Puerto Rico")
 
-
+data_agg <- data %>%
+  group_by(year) %>%
+  summarise(
+    total_med_enr = sum(total_med_enr, na.rm = TRUE),
+    total_mmc_enr = sum(managed_care_enrollment, na.rm = TRUE),
+    pct_in_managed_care = total_mmc_enr / total_med_enr
+  )
 
 
 
