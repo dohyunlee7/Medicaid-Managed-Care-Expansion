@@ -14,15 +14,30 @@ path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
 # Read in Tamara's 1991-2005 data
 data_91_05 <- readRDS(paste0(path, "/Temp/data_1991_2005.rds"))
 
+# Read managed care enrollment from 1991-1995
+mc91_05 <- read_dta(paste0(path, file.path("/Input_Data",
+                                           "Medicaid_managedcare_enrollment_report",
+                                           "external",
+                                           "mc91_05.dta")))
+
 d1 <- read_dta(paste0(path, "/Input_Data/Medicaid_managedcare_enrollment_report/external/fymcdben.dta"))
 
 mandate <- read_dta(paste0(path, "/Input_Data/Medicaid_managedcare_enrollment_report/external/uimmc.dta"))
 
 data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
 
+
 data <- data %>%
-  filter(year %in% 1991:2009) %>%
   filter(state != "Puerto Rico")
+
+data_agg <- data %>%
+  group_by(year) %>%
+  summarise(
+    total_med_enr = sum(total_med_enr, na.rm = TRUE),
+    total_mmc_enr = sum(managed_care_enrollment, na.rm = TRUE),
+    pct = scales::percent(total_mmc_enr / total_med_enr, accuracy = 0.1)
+  )
+
 
 
 

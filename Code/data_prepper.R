@@ -742,16 +742,72 @@ mandate$county97 <- ifelse(
   paste0(mandate$county97, " county")
 )
 
+# Lower case county names
 mandate$county97 <- tolower(mandate$county97)
 
+# Omit the "State of" tag in front of state names
 mandate$county97 <- gsub("state of ", "", mandate$county97)
 
 mandate_pop <- left_join(census_2000, 
                          mandate, 
                          by = c("stname" = "stname97", "ctyname" = "county97"))
 
+# Remove Yellowstone National Park, which likely doesn't have a human population
+mandate_pop <- mandate_pop %>%
+  filter(fips97 != 30111) %>%
+  filter(year != 1990)
 
+# Create dummy for inverse of "no MMC" (better readability)
+mandate_pop$mmc <- mandate_pop$nommc - 1
+mandate_pop$mmc <- mandate_pop$mmc * -1
 
+mandate_pop <- mandate_pop %>%
+  mutate(
+    hmom_pop = hmom * popestimate2000,
+    hmov_pop = hmov * popestimate2000,
+    pccmm_pop = pccmm * popestimate2000,
+    pccmv_pop = pccmv * popestimate2000,
+    mmc_pop = mmc * popestimate2000,
+    hmo = ifelse(hmom == 1 | hmov == 1, 1, 0),
+    hmopop = hmo * popestimate2000,
+    pccmm_only_pop = pccmm_only * popestimate2000,
+    onlyvol_pop = onlyvol * popestimate2000,
+    mandhmo_pop = mandhmo * popestimate2000,
+    mixedmand_pop = mixedmand * popestimate2000,
+    hmo_or_pccm = ifelse(hmom == 1 | pccmm == 1, 1, 0),
+    hmo_or_pccm_pop = hmo_or_pccm * popestimate2000
+  )
+
+# Constructing percentages with MMC/HMO mandate Table 1
+mp_agg <- mandate_pop %>%
+  group_by(year) %>%
+  summarise(
+    pop = sum(popestimate2000, na.rm = TRUE),
+    pop_with_pccm_only = sum(pccmm_only_pop, na.rm = TRUE),
+    pop_with_mandhmo = sum(mandhmo_pop, na.rm = TRUE),
+    pop_with_mixedmand = sum(mixedmand_pop, na.rm = TRUE),
+    pct_with_pccm_only = pop_with_pccm_only / pop,
+    pct_with_mandhmo = pop_with_mandhmo / pop,
+    pct_with_mixedmand = pop_with_mixedmand / pop
+  )
+
+# How Tamara constructed the percent residing in county with MMC mandate
+mp_agg <- mp_agg %>%
+  mutate(pct_with_mandate = scales::percent(pct_with_pccm_only + 
+                                              pct_with_mandhmo + 
+                                              pct_with_mixedmand, accuracy = 0.1))
+
+# Constructing percentages with MMC mandate Table 2
+mandate_pop_filtered <- mandate_pop %>%
+  filter(year == 1991)
+
+new_mp_agg <- mandate_pop_filtered %>%
+  group_by(stname) %>%
+  summarise(
+    pop = sum(popestimate2000, na.rm = TRUE),
+    pop_with_mandate = sum(hmo_or_pccm_pop, na.rm = TRUE),
+    pct_with_mandate = scales::percent(pop_with_mandate / pop, accuracy = 0.1)
+  )
 
 
 ### ---------------------- Adjust spending for inflation ------------------- ###
