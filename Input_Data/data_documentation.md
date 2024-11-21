@@ -44,7 +44,9 @@
       (e.g., mandatory/voluntary HMO, PCCM, etc.). Denoted as binary indicators.
   
   - `program_summary_from_report`
-  
+    - Tables for total Medicaid enrollees, Medicaid enrollment in any type of Managed Care, 
+    Medicaid enrollment in Comprehensive MCO, Medicaid newly eligible adults enrolled in Comprehensive MCOs (2011-2022, missing 2012)
+    
   - `raw_comp_mco_data`
     - Public raw data (2003-2021) downloaded from KFF with enrollment for 
     Comprehensive MCO by state
