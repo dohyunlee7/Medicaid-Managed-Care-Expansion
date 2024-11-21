@@ -4,7 +4,8 @@
 This project aims to expand on the findings of Duggan and Hayford by integrating new data and applying modern methodology to the literature. Due to the codebase containing various data sources, this README serves to organize documentation for each directory, dataset, and R script
 
 
-## Documentation
+## Documentation Directory
+  - [Datasets](Input_Data/data_documentation.md)
   
   
   

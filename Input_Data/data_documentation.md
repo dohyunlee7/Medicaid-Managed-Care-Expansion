@@ -1,5 +1,4 @@
 ### Datasets
-All data is stored within `Input_Data`
 
 - `CMS_64_report`
   - Stores Excel sheets of CMS-64 reports from 1997 to 2023
