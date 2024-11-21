@@ -35,8 +35,10 @@ data_agg <- data %>%
   summarise(
     total_med_enr = sum(total_med_enr, na.rm = TRUE),
     total_mmc_enr = sum(managed_care_enrollment, na.rm = TRUE),
-    pct = scales::percent(total_mmc_enr / total_med_enr, accuracy = 0.1)
-  )
+    pct_in_mmc = scales::percent(total_mmc_enr / total_med_enr, accuracy = 0.1)
+  ) %>%
+  mutate(total_med_enr_in_millions = round(total_med_enr / 1e6, 1)) %>%
+  select(year, total_med_enr_in_millions, pct_in_mmc) 
 
 
 

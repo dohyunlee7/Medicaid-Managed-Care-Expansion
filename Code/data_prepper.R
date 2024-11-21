@@ -667,6 +667,7 @@ est_91_95_enrollment <- left_join(est_91_95_enrollment,
 
 # Multiply FY enrollment by the ratio
 est_91_95_enrollment <- est_91_95_enrollment %>%
+  muta
   mutate(mcdben = round(fymcdben * ratio_96))
 
 # Select variables and rename enrollment variable
@@ -710,7 +711,7 @@ new_merged_data <- new_merged_data %>%
 
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
 
-
+new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
 
 ### ---------- Integrate mandate data and county-level Census data --------- ###
 
@@ -719,6 +720,7 @@ mandate <- read_dta(paste0(path, file.path("/Input_Data",
                                            "Medicaid_managedcare_enrollment_report",
                                            "external",
                                            "uimmc.dta")))
+
 
 # Read in county-level Census population data for 2000-2010
 census_2000 <- read_csv(paste0(path, file.path("/Input_Data",
@@ -734,6 +736,7 @@ census_2000 <- census_2000 %>%
   select(stname, ctyname, popestimate2000)
 
 census_2000$ctyname <- tolower(census_2000$ctyname)
+census_2000$stname <- tolower(census_2000$stname)
 
 # Add " county" at the end of string if it doesn't contain "State of" or DC
 mandate$county97 <- ifelse(
@@ -742,20 +745,38 @@ mandate$county97 <- ifelse(
   paste0(mandate$county97, " county")
 )
 
-# Lower case county names
+# Lower case county and state names
 mandate$county97 <- tolower(mandate$county97)
+mandate$stname97 <- tolower(mandate$stname97)
+
+
+mandate$county97 <- ifelse(
+  mandate$stname97 == "louisiana",
+  gsub(" county", " parish", mandate$county97),
+  mandate$county97
+)
 
 # Omit the "State of" tag in front of state names
 mandate$county97 <- gsub("state of ", "", mandate$county97)
 
+# Extend mandates for 2002 and 2003
+new_rows <- mandate %>%
+  group_by(stname97, county97) %>%
+  filter(year == 2001) %>%
+  mutate(year = list(c(2002, 2003))) %>%
+  unnest(year) %>%
+  bind_rows(mandate) %>%
+  arrange(stname97, county97, year)
+
 mandate_pop <- left_join(census_2000, 
-                         mandate, 
+                         new_rows, 
                          by = c("stname" = "stname97", "ctyname" = "county97"))
 
 # Remove Yellowstone National Park, which likely doesn't have a human population
 mandate_pop <- mandate_pop %>%
   filter(fips97 != 30111) %>%
   filter(year != 1990)
+
 
 # Create dummy for inverse of "no MMC" (better readability)
 mandate_pop$mmc <- mandate_pop$nommc - 1
@@ -773,9 +794,7 @@ mandate_pop <- mandate_pop %>%
     pccmm_only_pop = pccmm_only * popestimate2000,
     onlyvol_pop = onlyvol * popestimate2000,
     mandhmo_pop = mandhmo * popestimate2000,
-    mixedmand_pop = mixedmand * popestimate2000,
-    hmo_or_pccm = ifelse(hmom == 1 | pccmm == 1, 1, 0),
-    hmo_or_pccm_pop = hmo_or_pccm * popestimate2000
+    mixedmand_pop = mixedmand * popestimate2000
   )
 
 # Constructing percentages with MMC/HMO mandate Table 1
@@ -795,19 +814,40 @@ mp_agg <- mandate_pop %>%
 mp_agg <- mp_agg %>%
   mutate(pct_with_mandate = scales::percent(pct_with_pccm_only + 
                                               pct_with_mandhmo + 
-                                              pct_with_mixedmand, accuracy = 0.1))
+                                              pct_with_mixedmand, 
+                                            accuracy = 0.1),
+         pct_with_mandhmo = scales::percent(pct_with_mandhmo, 
+                                            accuracy = 0.1)) %>%
+  select(year, pct_with_mandate, pct_with_mandhmo)
 
 # Constructing percentages with MMC mandate Table 2
-mandate_pop_filtered <- mandate_pop %>%
-  filter(year == 1991)
-
-new_mp_agg <- mandate_pop_filtered %>%
-  group_by(stname) %>%
+mp_agg_tbl2 <- mandate_pop %>%
+  group_by(stname, year) %>%
   summarise(
+    # Total population
     pop = sum(popestimate2000, na.rm = TRUE),
-    pop_with_mandate = sum(hmo_or_pccm_pop, na.rm = TRUE),
-    pct_with_mandate = scales::percent(pop_with_mandate / pop, accuracy = 0.1)
-  )
+    
+    # Population by different mandate types
+    pop_with_pccm_only = sum(pccmm_only_pop, na.rm = TRUE),
+    pop_with_mandhmo = sum(mandhmo_pop, na.rm = TRUE),
+    pop_with_mixedmand = sum(mixedmand_pop, na.rm = TRUE),
+    
+    # Percent of different mandate types
+    pct_with_pccm_only = pop_with_pccm_only / pop,
+    pct_with_mandhmo = pop_with_mandhmo / pop,
+    pct_with_mixedmand = pop_with_mixedmand / pop,
+    
+    # Percent of population in mandatory MMC county
+    pct_with_mandate = pct_with_pccm_only + pct_with_mandhmo + pct_with_mixedmand
+  ) %>%
+  select(stname, 
+         year, 
+         pct_with_mandate, 
+         pct_with_mandhmo,
+         pct_with_pccm_only,
+         pct_with_mixedmand)
+
+saveRDS(mp_agg_tbl2, file = paste0(path, "/Temp/mandate_pcts_by_st_yr.rds"))
 
 
 ### ---------------------- Adjust spending for inflation ------------------- ###
