@@ -667,7 +667,6 @@ est_91_95_enrollment <- left_join(est_91_95_enrollment,
 
 # Multiply FY enrollment by the ratio
 est_91_95_enrollment <- est_91_95_enrollment %>%
-  muta
   mutate(mcdben = round(fymcdben * ratio_96))
 
 # Select variables and rename enrollment variable

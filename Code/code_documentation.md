@@ -54,6 +54,16 @@
       
         - Mandates are only available from 1991 to 2001.
           - **Note: I still can't find how they extended the mandate to 2002 and 2003. I just copied the data from 2001 onto these years for now, but I'm still looking**
+          
+        - Multiply the 2000 population estimate by 1 or 0 in the columns for the different types of mandates (e.g., mandatory/voluntary HMO, PCCM, no MMC, mixed mandate, etc.)
+        
+        - Divide these weighted estimates by the sum of the county-level populations after grouping by year and/or state.
+        
+      - **Adjust spending for inflation**
+      
+        - Using the library `fredr` and an API key from the Federal Reserve, get annual CPI and calculate year-over-year percentage change
+        
+        - Merge CPI for 2023 to `new_merged_data` and calculate the adjustment factor to adjust spending for inflation
 
 
 
