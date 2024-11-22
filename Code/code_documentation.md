@@ -64,6 +64,10 @@
         - Using the library `fredr` and an API key from the Federal Reserve, get annual CPI and calculate year-over-year percentage change
         
         - Merge CPI for 2023 to `new_merged_data` and calculate the adjustment factor to adjust spending for inflation
+    
+    - `clean_cms_64_97_01.R`, `clean_cms_64_02_11.R`, `clean_cms_64_2012.R`, `clean_cms_64_13_21.R`
+    
+      - Takes Excel sheets and structures them into wide-pivoted dataframes with MAP and ADP spending variables across multiple years consolidated into one dataframe
 
 
 
