@@ -7,7 +7,9 @@ This project aims to expand on the findings of Duggan and Hayford by integrating
 ## Documentation
   - [Datasets](Input_Data/data_documentation.md)
   - [Code](Code/code_documentation.md)
-  
+
+## Link to Shiny App for Descriptive Statistics
+[Shiny App](https://3z9k79-dohyun-lee.shinyapps.io/mco_tracker/)
   
   
   
