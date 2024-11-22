@@ -36,8 +36,8 @@
     sent from Dr. Tamara Hayford. 
     - Contains total Medicaid and Managed Care enrollment and spending by 
     different categories for years 1991-2005 + county-level mandates for years
-      - `fymcdben.dta`: Fiscal year Medicaid enrollment as of June 30th for state, year
-      - `mcdben.dta`: "Ever enrolled" in Medicaid for state, year
+      - `fymcdben.dta`: Fiscal year Medicaid enrollment for state, year
+      - `mcdben.dta`: Medicaid enrollment as of June 30th for state, year
       - `mc91_05.dta`: Medicaid Managed Care enrollment by different entity types
       by state and year for years 1991-2005
       - `uimmc.dta`: County-level mandates for managed care entity type 
@@ -54,3 +54,9 @@
   - `reports`
     - PDFs of Medicaid Managed Care Enrollment reports from 1995 to 2019. 
     Enrollment reports from 2007 and 2012 are nowhere to be found online.
+    
+    
+    
+    
+    
+    
