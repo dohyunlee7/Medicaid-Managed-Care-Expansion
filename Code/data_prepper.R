@@ -646,14 +646,14 @@ state.name <- c(state.name, "District of Columbia", "National Total")
 # Match state abbreviations to state names 
 enrollment_data$state <- state.name[match(enrollment_data$state, state.abb)]
 
-# Omit 1990 data
+# Omit 1990 data and calculate the 1996 ratio
 enrollment_data <- enrollment_data %>%
   filter(year != 1990)
 
 # Filter data for 1996 only, calculate ratio for the two enrollments for 1996
 enrollment_1996 <- enrollment_data %>%
   filter(year == 1996) %>%
-  mutate(ratio_96 = mcdben / fymcdben) %>%
+  mutate(mcd96rat = mcdben / fymcdben) %>%
   select(state, ratio_96)
 
 # Filter for 1991-1995
