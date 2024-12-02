@@ -1,6 +1,6 @@
 
 #'
-#' table_replication.R -- Replicate tables 2, 4, 5 in D&H
+#' table_replication.R -- Replicate tables in D&H
 #'
 
 library(dplyr)
