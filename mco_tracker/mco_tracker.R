@@ -7,6 +7,11 @@ library(tidyverse)
 #d <- readRDS("full_table_with_proportions.rds")
 d <- readRDS("new_merged_panel_inflation_adj.rds")
 
+t_primes <- readRDS("t_primes.rds")
+
+d <- d %>%
+  left_join(t_primes, by = "state")
+
 # Remove DC and Puerto Rico
 d <- d %>%
   filter(!state %in% c("District of Columbia", "Puerto Rico")) #%>%
@@ -64,24 +69,29 @@ server <- function(input, output) {
                      color = state)) +
       geom_line(size = 1) +
       labs(title = "Total Medicaid Spending Over Time by State",
-           subtitle = "1991 - 2023",
+           subtitle = "1991 - 2023, Adjusted for 2023 Dollars",
            x = "Year",
-           y = "Total Medicaid Spending in USD (Billions in 2023 Dollars)") +
+           y = "Total Medicaid Spending in USD (Billions)") +
       scale_x_continuous(breaks = seq(1990, 2023, by = 2)) +
       scale_y_continuous(labels = scales::comma) +
       theme_pub()
   })
   
   output$enrollment_plot <- renderPlot({
-    ggplot(dd(), aes(x = year, y = comprehensive_mco_enr, color = state)) +
+    ggplot(dd(), aes(x = year, y = crb_mc_enrollees / total_med_enr, color = state)) +
       geom_line(size = 1) +
-      labs(title = "Comprehensive Risk-Based Managed Care Enrollment by State",
-           subtitle = "We only have Comprehensive MCO enrollment from 2003-2022",
+      labs(title = "Share of Comprehensive Risk-Based Managed Care by State",
+           subtitle = "We only have Comprehensive MCO enrollment from 1999-2022",
            x = "Year",
-           y = "Enrollees") +
-      scale_x_continuous(breaks = seq(1990, 2023, by = 2)) +
-      scale_y_continuous(labels = scales::comma) +
-      theme_pub()
+           y = "Share of Enrollees") +
+      scale_x_continuous(breaks = seq(1999, 2023, by = 2),
+                         limits = c(1999, 2023)) +
+      scale_y_continuous(breaks = seq(0, 1, by = 0.20),
+                         limits = c(0, 1),
+                         labels = scales::percent) +
+      geom_vline(data = dd() %>% filter(year == t_prime), 
+                 aes(xintercept = t_prime, color = state), 
+                 linetype = "dashed", size = 1) +      theme_pub()
   })
 
   output$mco_spending_plot <- renderPlot({
@@ -93,7 +103,9 @@ server <- function(input, output) {
            x = "Year",
            y = "Proportion of MCO Spending") +
       scale_x_continuous(breaks = seq(1990, 2023, by = 2)) +
-      scale_y_continuous(labels = scales::percent) +
+      scale_y_continuous(breaks = seq(0, 1, by = 0.20),
+                         limits = c(0, 1),
+                         labels = scales::percent) +
       theme_pub()
   })
   

@@ -132,7 +132,9 @@ coalesce_join <- function(main_data,
     
     if (col_x %in% names(main_data) && col_y %in% names(main_data)) {
       main_data <- main_data %>%
+        ungroup() %>%
         mutate(!!col := coalesce(.[[col_x]], .[[col_y]]))
+        
     }
   }
   
@@ -238,7 +240,7 @@ dir_path <- paste0(path,
                              "by_program_pop_from_report"))
 
 # Get vector of years we have for MC enrollment from report PDFs
-years <- setdiff(2006:2022, c(2007, 2012))
+years <- setdiff(1999:2022, c(2003:2005, 2007, 2012))
 
 # Get vector of file names and use apply function to read in files in one line
 file_names <- paste0(dir_path, "/data_", years, ".csv")
@@ -314,11 +316,11 @@ clean_new_data_list <- lapply(names(clean_new_data_list), function(year) {
 clean_new_data_list <- lapply(clean_new_data_list, function(df) {
   df %>%
     mutate(imputed_any_mco_enr = rowSums(select(.,
-                                                comprehensive_mco_enr,
-                                                pccm,
+                                                dplyr::contains("comprehensive_mco_enr"),
+                                                dplyr::contains("pccm"),
                                                 dplyr::contains("pccm_entity"),
                                                 any_of(c("mltss", "mltss_only")),
-                                                other),
+                                                dplyr::contains("other")),
                                          na.rm = TRUE))
 })
 
@@ -358,6 +360,19 @@ names(data) <- tolower(names(data))
 # Change column name for state
 new_data <- data %>%
   rename(state = tag)
+
+comp_mco_tbl <- readRDS(paste0(path, "/Temp/full_mco_table.rds"))
+
+comp_mco_tbl <- comp_mco_tbl %>%
+  select(-med_enr_pct)
+
+new_data <- left_join(new_data, comp_mco_tbl, by = c("state", "year"))
+
+new_data <- new_data %>%
+  mutate(crb_mc_enrollees = coalesce(crb_mc_enrollees.x, 
+                                     crb_mc_enrollees.y)) %>%
+  select(-crb_mc_enrollees.x, -crb_mc_enrollees.y)
+
 
 ### ------ Cleaning panel column names for merging with Tamara's data ------ ###
 
@@ -433,12 +448,17 @@ names(new_data) <- gsub("\\.x$|\\.y$", "", names(new_data))
 merged_data <- bind_rows(data_91_05, new_data)
 
 merged_data <- merged_data %>%
+  group_by(state, year) %>%
+  fill(crb_mc_enrollees, .direction = "downup")
+
+merged_data <- merged_data %>%
   select(state, 
          year, 
          total_med_enr, 
          managed_care_enrollment,
          pct_in_managed_care,
          comprehensive_mco_enr,
+         crb_mc_enrollees,
          hio,
          commercial_mco,
          medicaid_only_mco,
@@ -462,45 +482,53 @@ merged_data <- merged_data %>%
 saveRDS(merged_data, file = paste0(path, "/Temp/merged_panel.rds"))
 
 ### ------------- Integrate Comp. MCO data from KFF Tracker ---------------- ###
-# Read in files with MMC population by state
-comp_path <- paste0(path, 
-                    file.path("/Input_Data",
-                              "Medicaid_managedcare_enrollment_report", 
-                              "raw_comp_mco_data"))
-
-# Get vector of years we need for Comp. MCO
-years <- 2003:2011
-
-# Get vector of file names and use apply function to read in files in one line
-comp_file_names <- paste0(comp_path, "/raw_data_", years, ".csv")
-
-# Get names of states
-state_names <- c(state.name, "District of Columbia")
-
-comp_mco_list <- lapply(comp_file_names, clean_and_split)
-
-names(comp_mco_list) <- years
-
-# Clean variables in each column, rename things, convert variable types
-comp_mco_list <- lapply(comp_mco_list, function(df) {
-  df <- df %>%
-    select(-V3) %>%
-    rename(state = V1,
-           comprehensive_mco_enr = V2) %>%
-    mutate(state = gsub('"', '', state),
-           comprehensive_mco_enr = gsub("[^0-9.]", "", comprehensive_mco_enr),
-           comprehensive_mco_enr = as.numeric(comprehensive_mco_enr))
-})
-
-# Collapse list of lists down to one dataframe
-comp_mco_df <- do.call(bind_rows, comp_mco_list)
-
-# Fill in missing values in merged panel
-new_merged_data <- merged_data %>%
-  left_join(comp_mco_df, by = c("state", "year"), suffix = c("", "_new")) %>%
-  mutate(comprehensive_mco_enr = coalesce(comprehensive_mco_enr, 
-                                          comprehensive_mco_enr_new)) %>%
-  select(-comprehensive_mco_enr_new)
+# # Read in files with MMC population by state
+# comp_path <- paste0(path, 
+#                     file.path("/Input_Data",
+#                               "Medicaid_managedcare_enrollment_report", 
+#                               "raw_comp_mco_data"))
+# 
+# # Get vector of years we need for Comp. MCO
+# years <- 2003:2011
+# 
+# # Get vector of file names and use apply function to read in files in one line
+# comp_file_names <- paste0(comp_path, "/raw_data_", years, ".csv")
+# 
+# # Get names of states
+# state_names <- c(state.name, "District of Columbia")
+# 
+# comp_mco_list <- lapply(comp_file_names, clean_and_split)
+# 
+# names(comp_mco_list) <- years
+# 
+# # Clean variables in each column, rename things, convert variable types
+# comp_mco_list <- lapply(comp_mco_list, function(df) {
+#   df <- df %>%
+#     select(-V3) %>%
+#     rename(state = V1,
+#            comprehensive_mco_enr = V2) %>%
+#     mutate(state = gsub('"', '', state),
+#            comprehensive_mco_enr = gsub("[^0-9.]", "", comprehensive_mco_enr),
+#            comprehensive_mco_enr = as.numeric(comprehensive_mco_enr))
+# })
+# 
+# # Collapse list of lists down to one dataframe
+# comp_mco_df <- do.call(bind_rows, comp_mco_list)
+# 
+# # Fill in missing values in merged panel
+# new_merged_data <- merged_data %>%
+#   left_join(comp_mco_df, by = c("state", "year"), suffix = c("", "_new")) %>%
+#   mutate(comprehensive_mco_enr = coalesce(comprehensive_mco_enr, 
+#                                           comprehensive_mco_enr_new)) %>%
+#   select(-comprehensive_mco_enr_new)
+# 
+# comp_mco_tbl <- readRDS(paste0(path, "/Temp/full_mco_table.rds"))
+# 
+# comp_mco_tbl <- comp_mco_tbl %>%
+#   select(-med_enr_pct)
+# 
+# new_merged_data <- merged_data %>%
+#   left_join(comp_mco_tbl, by = c("state", "year"))
 
 ### ------- Integrating 2006-07 Managed Care Enrollment from Claims -------- ###
 
@@ -537,11 +565,13 @@ mc_enr_07 <- mc_enr_07 %>%
 
 # Vector of column names in desired order
 reorder_cols <- c("state", "year", "total_med_enr", "managed_care_enrollment", 
-                  "pct_in_managed_care", "comprehensive_mco_enr", "hio", 
-                  "commercial_mco", "medicaid_only_mco", "pccm", "pccm_entity", 
+                  "pct_in_managed_care", "comprehensive_mco_enr", "crb_mc_enrollees", 
+                  "hio", "commercial_mco", "medicaid_only_mco", "pccm", "pccm_entity", 
                   "bho", "pihp", "pahp", "bho_pihp_andor_pahp", "mltss", 
                   "mltss_only", "dental", "transportation", 
                   "imputed_any_mco_enr")
+
+new_merged_data <- merged_data
 
 # Coalesce 2007 values
 new_merged_data <- coalesce_join(
@@ -588,13 +618,16 @@ names(enr_2012) <- tolower(names(enr_2012))
 mc_enr_12 <- enr_getter(enr_2012)
 mc_enr_12$year <- 2012
 
+mc_enr_12 <- mc_enr_12 %>%
+  rename(crb_mc_enrollees = comprehensive_mco_enr)
+
 # Coalesce 2012 values
 new_merged_data <- coalesce_join(
   main_data = new_merged_data,
   join_data = mc_enr_12,
   by_cols = c("state", "year"),
   coalesce_cols = c("total_med_enr", 
-                    "comprehensive_mco_enr", 
+                    "crb_mc_enrollees", 
                     "mltss", 
                     "dental", 
                     "pccm", 
@@ -654,7 +687,7 @@ enrollment_data <- enrollment_data %>%
 enrollment_1996 <- enrollment_data %>%
   filter(year == 1996) %>%
   mutate(mcd96rat = mcdben / fymcdben) %>%
-  select(state, ratio_96)
+  select(state, mcd96rat)
 
 # Filter for 1991-1995
 est_91_95_enrollment <- enrollment_data %>%
@@ -667,7 +700,7 @@ est_91_95_enrollment <- left_join(est_91_95_enrollment,
 
 # Multiply FY enrollment by the ratio
 est_91_95_enrollment <- est_91_95_enrollment %>%
-  mutate(mcdben = round(fymcdben * ratio_96))
+  mutate(mcdben = fymcdben * mcd96rat)
 
 # Select variables and rename enrollment variable
 est_91_95_enrollment <- est_91_95_enrollment %>%
@@ -684,6 +717,8 @@ new_merged_data <- coalesce_join(
   reorder_cols = reorder_cols
 )
 
+new_merged_data$total_med_enr <- as.numeric(new_merged_data$total_med_enr)
+
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
 
 # Read managed care enrollment from 1991-1995
@@ -695,18 +730,22 @@ mc91_05 <- read_dta(paste0(path, file.path("/Input_Data",
 mc91_05$state <- state.name[match(mc91_05$state, state.abb)]
 
 new_mc91_05 <- mc91_05 %>%
+  mutate(undup_tot = as.numeric(undup_tot)) %>%
   select(state, year, undup_tot) %>%
   filter(year %in% 1991:1994)
 
-new_mc91_05$state <- state.name[match(new_mc91_05$state, state.abb)]
-
+# Join unduplicated totals for managed care enrollment from 1991-1994
 new_merged_data <- new_merged_data %>%
   left_join(new_mc91_05, by = c("state", "year")) %>%
-  mutate(managed_care_enrollment = coalesce(managed_care_enrollment,
-                                            undup_tot))
+  mutate(managed_care_enrollment = coalesce(managed_care_enrollment, undup_tot))
 
+# Calculate percent in managed care
 new_merged_data <- new_merged_data %>%
   mutate(pct_in_managed_care = managed_care_enrollment / total_med_enr)
+
+# Fill Comp. Risk-Based enrollment 
+new_merged_data <- new_merged_data %>%
+  mutate(crb_mc_enrollees = replace_na(crb_mc_enrollees, 0))
 
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
 
@@ -882,7 +921,7 @@ new_merged_data_adj <- new_merged_data_adj %>%
   mutate(adj_factor = cpi_2023 / cpi)
 
 new_merged_data_adj <- new_merged_data_adj %>%
-  mutate(across(28:456, ~. * adj_factor))
+  mutate(across(29:457, ~. * adj_factor))
 
 saveRDS(new_merged_data_adj, file = paste0(path, "/Temp/new_merged_panel_inflation_adj.rds"))
 

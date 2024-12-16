@@ -58,6 +58,33 @@ shift_columns <- function(data, expected_cols = 10) {
   return(shifted_df)
 }
 
+#' Clean lines and split by commas
+#' @param file_name text file
+#' @return cleaned dataframe
+clean_and_split <- function(file_name) {
+  # Read the file as raw lines
+  lines <- readLines(file_name)
+  
+  # Filter lines that contain a valid state name
+  filtered_lines <- lines[sapply(lines, function(line) {
+    any(sapply(state_names, grepl, line))
+  })]
+  
+  # Split the remaining lines by commas
+  cleaned_data <- do.call(rbind, lapply(filtered_lines, function(line) {
+    unlist(strsplit(line, ","))
+  }))
+  
+  # Convert to data frame
+  df <- as.data.frame(cleaned_data, stringsAsFactors = FALSE)
+  
+  # Extract year from file name and add as a new column
+  year <- as.numeric(gsub(".*_(\\d{4})\\.csv$", "\\1", file_name))
+  df$year <- year
+  
+  return(df)
+}
+
 ### -------------------------------- 2015 ---------------------------------- ###
 
 library(dplyr)
@@ -184,6 +211,25 @@ df3[df3 == "--" | df3 == "n/a"] <- NA
 
 # Convert character numbers to numeric for all columns
 df3[-1] <- lapply(df3[-1], function(x) as.numeric(gsub(",", "", x)))
+
+df3 <- df3 %>%
+  select(-comp_mco)
+
+comp_mco_2013 <- clean_and_split(paste0(path, file.path("/Input_Data",
+                                                 "Medicaid_managedcare_enrollment_report", 
+                                                 "raw_comp_mco_data",
+                                                 "raw_data_2013.csv")))
+
+comp_mco_2013 <- comp_mco_2013 %>%
+  select(-V3) %>%
+  rename(state = V1,
+         comprehensive_mco_enr = V2) %>%
+  mutate(state = gsub('"', '', state),
+         comprehensive_mco_enr = gsub("[^0-9.]", "", comprehensive_mco_enr),
+         comprehensive_mco_enr = as.numeric(comprehensive_mco_enr))
+
+df3 <- df3 %>%
+  left_join(comp_mco_2013, by = "state")
 
 write_csv(df3, file = paste0(save_path, "/data_2013.csv"))
 

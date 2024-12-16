@@ -30,10 +30,6 @@ data <- data %>%
   filter(state != "Puerto Rico")
 
 
-
-
-
-
 ### ------------------------------- Table 1 -------------------------------- ###
 
 data_agg <- data %>%
@@ -73,11 +69,36 @@ tbl2 <- tbl2 %>%
 tbl2 <- tbl2 %>%
   mutate(across(everything(), ~ replace_na(.x, "0.0%")))
 
+### ----------------------------- Table 3 ---------------------------------- ###
+tbl3_data <- data %>%
+  filter(year %in% c(1991, 1997, 2003, 2009)) %>%
+  select(state, year, total_med_enr, `total medicaid (mt + at)`)
+
+tbl3_data <- tbl3_data %>%
+  group_by(year) %>%
+  summarise(total_med_spending = sum(`total medicaid (mt + at)`, na.rm = T))
+
+# Join annual CPI to panel
+data_adj <- left_join(tbl3_data, cpi_data, by = "year")
+
+data_adj$cpi <- data_adj$cpi
+
+cpi_2010 <- cpi_data[cpi_data$year == 2010, ]$cpi
+
+data_adj <- data_adj %>%
+  mutate(adj_factor = cpi_2010 / cpi)
+
+data_adj <- data_adj %>%
+  mutate(total_med_spending = total_med_spending * adj_factor) %>%
+  mutate(total_med_spending = scales::dollar(total_med_spending / 1e6))
+
+
+
+
 ### ----------------------------- Table 4 ---------------------------------- ###
 tbl4_data <- data %>%
   filter(year %in% c(1991, 2003, 2009)) %>%
   select(state, year, total_med_enr, `total medicaid (mt + at)`)
-
 
 library(fredr)
 

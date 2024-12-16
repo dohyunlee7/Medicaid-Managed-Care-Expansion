@@ -33,8 +33,6 @@ join_and_fill <- function(data_list, df, year) {
 
 ### -------------- Process raw comp. MCO data from 2003 - 2015  ------------ ###
 
-
-
 library(readr)
 library(dplyr)
 library(tidyverse)
@@ -167,7 +165,7 @@ grouped_table <- full_data_table %>%
 names(grouped_table) <- setdiff(2003:2021, 2012)
 
 # Define years
-years <- setdiff(2008:2015, 2012)
+years <- setdiff(2008:2021, 2012)
 
 # Get all file names with the years attached
 file_names <- paste0(path, "/data_", years, ".csv")
@@ -175,6 +173,14 @@ file_names <- paste0(path, "/data_", years, ".csv")
 # Apply read_csv to the file names
 files_list <- lapply(file_names, read_csv)
 names(files_list) <- years
+
+# Rename the variable in each dataframe within the list
+files_list <- lapply(files_list, function(df) {
+  if ("total_medicaid_enrollees" %in% names(df)) {
+    names(df)[names(df) == "total_medicaid_enrollees"] <- "total_med_enr"
+  }
+  return(df)
+})
 
 # Apply joining and filling function to all sublists
 grouped_table[as.character(years)] <- lapply(years, function(year) {

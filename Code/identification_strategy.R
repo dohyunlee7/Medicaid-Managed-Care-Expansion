@@ -112,45 +112,75 @@ new_merged_data <- new_merged_data %>%
   arrange(state, year) %>%
   group_by(state) %>%
   mutate(
-    pct_in_comp_mco = comprehensive_mco_enr / total_med_enr,
+    pct_in_comp_mco = crb_mc_enrollees / total_med_enr,
     change_comp_mco = pct_in_comp_mco - lag(pct_in_comp_mco),
-    treatment_10 = ifelse(change_comp_mco > 0.10, 1, 0),
-    treatment_20 = ifelse(change_comp_mco > 0.20, 1, 0)
   ) %>%
   ungroup()
 
-unique_years <- unique(new_merged_data$year)
+states_vec <- unique(new_merged_data$state)
+states_vec <- states_vec[states_vec != "Puerto Rico"]
 
 # Initialize empty df to store results
-res <- data.frame(
+final_res <- data.frame(
+  state = character(),
   t_prime = integer(),
   r_squared = numeric()
 )
 
-# Loop through each possible t'
-for (t_prime in unique_years) {
+for (state_i in states_vec) {
+  print(state_i)
   
-  # Indicator for current t'
-  new_merged_data <- new_merged_data %>%
-    mutate(treat = as.numeric(year >= t_prime))
+  # Filter dataframe for individual state per iteration
+  state_data <- new_merged_data %>%
+    filter(state == state_i)
   
-  # Fit regression
-  model <- lm(pct_in_comp_mco ~ treat, data = new_merged_data)
+  # Check if pct_in_comp_mco is constant or has only NA values
+  if (all(is.na(state_data$pct_in_comp_mco)) || var(state_data$pct_in_comp_mco, na.rm = TRUE) == 0) {
+    print(paste("Skipping state:", state_i, "- pct_in_comp_mco is constant or all NA"))
+    next
+  }
+  # Initialize new empty dataframe for each state every iteration
+  state_res <- data.frame(t_prime = integer(), 
+                          r_squared = numeric())
   
-  # Extract R-squared and save result
-  r_squared <- summary(model)$r.squared
-  res <- rbind(res, data.frame(t_prime = t_prime, r_squared = r_squared))
+  # Get vector of years for every pass
+  unique_years <- unique(state_data$year)
+  
+  # Loop through each possible t'
+  for (t_prime in unique_years) {
+    
+    print(t_prime)
+    
+    # Indicator for current t'
+    state_data <- state_data %>%
+      mutate(treat = as.numeric(year >= t_prime))
+    
+    # Fit regression
+    model <- lm(pct_in_comp_mco ~ treat, data = state_data)
+    
+    # Extract R-squared and save result
+    r_squared <- summary(model)$r.squared
+    r_squared <- ifelse(is.nan(r_squared), 0, r_squared)
+    state_res <- rbind(state_res, data.frame(t_prime = t_prime, 
+                                             r_squared = r_squared))
+    
+  }
+  
+  # For state store the t' with the highest R-squared in a dataframe
+  best_row <- state_res %>%
+    filter(r_squared == max(r_squared)) %>%
+    slice(1)
+  
+  best_t_prime <- best_row$t_prime
+  
+  best_r_squared <- best_row$r_squared
+  
+  final_res <- rbind(final_res, data.frame(state = state_i, 
+                                           t_prime = best_t_prime, 
+                                           r_squared = best_r_squared))
 }
 
-# Get year with highest R-squared
-best_t_prime <- res %>%
-  filter(r_squared == max(r_squared)) %>%
-  pull(t_prime)
+# final_res <- final_res %>%
+#   mutate(t_prime = ifelse(r_squared == 0, NA, t_prime))
 
-
-
-
-
-
-
-
+saveRDS(final_res, file = paste0(path, "/Temp/t_primes.rds"))
