@@ -183,4 +183,40 @@ for (state_i in states_vec) {
 # final_res <- final_res %>%
 #   mutate(t_prime = ifelse(r_squared == 0, NA, t_prime))
 
+new_merged_data <- new_merged_data %>%
+  left_join(final_res, by = "state")
+
+unique_states <- unique(new_merged_data$state)
+
+output_dir <- file.path(path, "Output", "state_plots")
+
+for (st in unique_states) {
+  state_data <- new_merged_data %>%
+    filter(state == st)
+  
+  p <- ggplot(state_data, aes(x = year, 
+                              y = crb_mc_enrollees / total_med_enr, 
+                              color = state)) +
+    geom_line(size = 1) +
+    labs(title = "Share of Comprehensive Risk-Based Managed Care by State",
+         subtitle = "We only have Comprehensive MCO enrollment from 1999-2022",
+         x = "Year",
+         y = "Share of Enrollees") +
+    scale_x_continuous(breaks = seq(1999, 2023, by = 2),
+                       limits = c(1999, 2023)) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.20),
+                       limits = c(0, 1),
+                       labels = scales::percent) +
+    geom_vline(data = state_data %>% filter(year == t_prime), 
+               aes(xintercept = t_prime, color = state), 
+               linetype = "dashed", size = 1) +      
+    theme_pub()
+  
+  output_path <- file.path(output_dir, paste0(st, ".png"))
+  ggsave(output_path, plot = p, width = 8, height = 6, dpi = 300)
+}
+
+
+
+
 saveRDS(final_res, file = paste0(path, "/Temp/t_primes.rds"))

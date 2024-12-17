@@ -1,0 +1,564 @@
+state,managed_care_enrollment,year
+Alabama,568332,2011
+Alaska,0,2011
+Arizona,1198818,2011
+Arkansas,477060,2011
+California,4553090,2011
+Colorado,551972,2011
+Connecticut,396960,2011
+Delaware,161655,2011
+District of Columbia,136003,2011
+Florida,1958679,2011
+Georgia,1413643,2011
+Hawaii,268645,2011
+Idaho,230725,2011
+Illinois,1888500,2011
+Indiana,741744,2011
+Iowa,401785,2011
+Kansas,310036,2011
+Kentucky,735978,2011
+Louisiana,789871,2011
+Maine,176335,2011
+Maryland,735859,2011
+Massachusetts,832064,2011
+Michigan,1606688,2011
+Minnesota,556665,2011
+Mississippi,541854,2011
+Missouri,875227,2011
+Montana,81085,2011
+Nebraska,202189,2011
+Nevada,248819,2011
+New Hampshire,0,2011
+New Jersey,853645,2011
+New Mexico,401318,2011
+New York,3777868,2011
+North Carolina,1238563,2011
+North Dakota,42423,2011
+Ohio,1605821,2011
+Oklahoma,591850,2011
+Oregon,640912,2011
+Pennsylvania,1740659,2011
+Puerto Rico,896562,2011
+Rhode Island,135253,2011
+South Carolina,862145,2011
+South Dakota,91268,2011
+Tennessee,1218676,2011
+Texas,2786985,2011
+Utah,268984,2011
+Vermont,103529,2011
+Virgin Islands,0,2011
+Virginia,532292,2011
+Washington,1041904,2011
+West Virginia,166555,2011
+Wisconsin,747046,2011
+Wyoming,0,2011
+Alabama,570924,2013
+Alaska,0,2013
+Arizona,1072628,2013
+Arkansas,477391,2013
+California,5710766,2013
+Colorado,705356,2013
+Connecticut,0,2013
+Delaware,182458,2013
+District of Columbia,171064,2013
+Florida,2124162,2013
+Georgia,1185744,2013
+Hawaii,303472,2013
+Idaho,241432,2013
+Illinois,2065489,2013
+Indiana,765630,2013
+Iowa,357127,2013
+Kansas,328922,2013
+Kentucky,716715,2013
+Louisiana,1101415,2013
+Maine,161367,2013
+Maryland,865100,2013
+Massachusetts,903821,2013
+Michigan,1291680,2013
+Minnesota,633494,2013
+Mississippi,534029,2013
+Missouri,844233,2013
+Montana,78022,2013
+Nebraska,185163,2013
+Nevada,180321,2013
+New Hampshire,0,2013
+New Jersey,1055953,2013
+New Mexico,413111,2013
+New York,4039442,2013
+North Carolina,1209638,2013
+North Dakota,42718,2013
+Ohio,1668069,2013
+Oklahoma,540164,2013
+Oregon,626650,2013
+Pennsylvania,1860716,2013
+Rhode Island,147668,2013
+South Carolina,639675,2013
+South Dakota,90998,2013
+Tennessee,1215624,2013
+Texas,2999007,2013
+Utah,261847,2013
+Vermont,102816,2013
+Virginia,635734,2013
+Washington,789931,2013
+West Virginia,174377,2013
+Wisconsin,740600,2013
+Wyoming,19,2013
+Alabama,641217,2014
+Alaska,0,2014
+Arizona,1317463,2014
+Arkansas,515111,2014
+California,7840879,2014
+Colorado,1029950,2014
+Connecticut,0,2014
+Delaware,196065,2014
+District of Columbia,185937,2014
+Florida,2684181,2014
+Georgia,1352544,2014
+Hawaii,318200,2014
+Idaho,266172,2014
+Illinois,2163351,2014
+Indiana,773757,2014
+Iowa,533403,2014
+Kansas,356630,2014
+Kentucky,1081673,2014
+Louisiana,1044899,2014
+Maine,161367,2014
+Maryland,1084437,2014
+Massachusetts,1110277,2014
+Michigan,3774727,2014
+Minnesota,791004,2014
+Mississippi,155124,2014
+Missouri,797512,2014
+Montana,91071,2014
+Nebraska,229661,2014
+Nevada,464054,2014
+New Hampshire,121161,2014
+New Jersey,1418074,2014
+New Mexico,580224,2014
+New York,4412837,2014
+North Carolina,1717658,2014
+North Dakota,46154,2014
+Ohio,2028249,2014
+Oklahoma,736785,2014
+Oregon,971104,2014
+Pennsylvania,1978894,2014
+Rhode Island,223749,2014
+South Carolina,720925,2014
+South Dakota,91289,2014
+Tennessee,1288631,2014
+Texas,3232307,2014
+Utah,282844,2014
+Vermont,79735,2014
+Virginia,707926,2014
+Washington,1245322,2014
+West Virginia,203288,2014
+Wisconsin,701290,2014
+Wyoming,57,2014
+Alabama,660652,2015
+Alaska,0,2015
+Arizona,1471809,2015
+Arkansas,613839,2015
+California,9727076,2015
+Colorado,1214657,2015
+Connecticut,0,2015
+Delaware,203212,2015
+District of Columbia,192086,2015
+Florida,3007086,2015
+Georgia,1371866,2015
+Hawaii,336764,2015
+Idaho,283355,2015
+Illinois,2909371,2015
+Indiana,933156,2015
+Iowa,579954,2015
+Kansas,364838,2015
+Kentucky,1198540,2015
+Louisiana,1171742,2015
+Maine,242390,2015
+Maryland,1018560,2015
+Massachusetts,1236659,2015
+Michigan,3837838,2015
+Minnesota,783276,2015
+Mississippi,505038,2015
+Missouri,922072,2015
+Montana,103752,2015
+Nebraska,229172,2015
+Nevada,515868,2015
+New Hampshire,161411,2015
+New Jersey,1542739,2015
+New Mexico,649041,2015
+New York,4782573,2015
+North Carolina,1568226,2015
+North Dakota,46634,2015
+Ohio,2276751,2015
+Oklahoma,549496,2015
+Oregon,924073,2015
+Pennsylvania,2213706,2015
+Rhode Island,308521,2015
+South Carolina,1233430,2015
+South Dakota,93548,2015
+Tennessee,1436156,2015
+Texas,3532759,2015
+Utah,288198,2015
+Vermont,135125,2015
+Virginia,754875,2015
+Washington,1771679,2015
+West Virginia,209958,2015
+Wisconsin,800996,2015
+Wyoming,66,2015
+Arkansas,512041,2016
+District of Columbia,180942,2016
+Wyoming,391,2016
+Pennsylvania,2521421,2016
+Massachusetts,1268120,2016
+North Dakota,48621,2016
+Michigan,4370138,2016
+Virginia,761019,2016
+Hawaii,354289,2016
+Kentucky,1284134,2016
+South Dakota,94295,2016
+Montana,121277,2016
+Alabama,664687,2016
+California,10574784,2016
+Missouri,961682,2016
+Louisiana,1381116,2016
+New Jersey,1557081,2016
+Delaware,196102,2016
+Washington,1820084,2016
+Oregon,894543,2016
+Alaska,0,2016
+New Hampshire,136985,2016
+New Mexico,684488,2016
+South Carolina,1235361,2016
+Indiana,1078625,2016
+Maine,239953,2016
+Rhode Island,278087,2016
+Mississippi,499365,2016
+Georgia,1228700,2016
+West Virginia,390083,2016
+Utah,291426,2016
+Colorado,1291043,2016
+Ohio,2455224,2016
+New York,4669344,2016
+Texas,3922822,2016
+Iowa,562382,2016
+Vermont,124399,2016
+Illinois,1967783,2016
+Nevada,557397,2016
+Florida,3280187,2016
+Oklahoma,643789,2016
+Minnesota,817463,2016
+Wisconsin,801939,2016
+Maryland,1080085,2016
+Connecticut,0,2016
+North Carolina,1581301,2016
+Nebraska,242836,2016
+Kansas,390829,2016
+Arizona,1560972,2016
+Tennessee,1556369,2016
+Idaho,280527,2016
+Georgia,1256809,2017
+Rhode Island,309037,2017
+Nevada,578683,2017
+Washington,1824730,2017
+North Carolina,1607806,2017
+Louisiana,1493106,2017
+Utah,282603,2017
+Mississippi,487201,2017
+Arizona,1617558,2017
+New Hampshire,133811,2017
+Indiana,1138368,2017
+Missouri,975297,2017
+South Carolina,1217302,2017
+New York,4710609,2017
+Connecticut,0,2017
+Oklahoma,652952,2017
+Virginia,723896,2017
+Kentucky,1308047,2017
+Ohio,2551378,2017
+Illinois,1912602,2017
+Texas,3903380,2017
+Colorado,1327452,2017
+Alaska,0,2017
+Hawaii,360905,2017
+Montana,175012,2017
+Wyoming,395,2017
+Massachusetts,1247614,2017
+Kansas,398556,2017
+Oregon,859634,2017
+South Dakota,93369,2017
+New Mexico,695772,2017
+Delaware,208221,2017
+Maryland,1161315,2017
+Wisconsin,799040,2017
+California,10805936,2017
+District of Columbia,196704,2017
+Idaho,292732,2017
+Pennsylvania,2562466,2017
+Nebraska,246633,2017
+Tennessee,1409555,2017
+Iowa,556741,2017
+Alabama,636919,2017
+Michigan,4655013,2017
+Vermont,96823,2017
+Maine,238937,2017
+North Dakota,49733,2017
+Florida,3280341,2017
+Arkansas,522252,2017
+New Jersey,1560395,2017
+West Virginia,424662,2017
+Minnesota,846115,2017
+Alabama,638221,2018
+Alaska,0,2018
+Arizona,1560593,2018
+Arkansas,871262,2018
+California,10670306,2018
+Colorado,1171171,2018
+Connecticut,0,2018
+Delaware,208802,2018
+District of Columbia,245921,2018
+Florida,3178981,2018
+Georgia,1485250,2018
+Hawaii,351685,2018
+Idaho,272979,2018
+Illinois,2176902,2018
+Indiana,1126425,2018
+Iowa,580507,2018
+Kansas,358225,2018
+Kentucky,1259525,2018
+Louisiana,1504540,2018
+Maine,234327,2018
+Maryland,1169708,2018
+Massachusetts,1211485,2018
+Michigan,4608988,2018
+Minnesota,892137,2018
+Mississippi,441782,2018
+Missouri,954603,2018
+Montana,215475,2018
+Nebraska,249024,2018
+Nevada,588111,2018
+New Hampshire,133829,2018
+New Jersey,1569344,2018
+New Mexico,666050,2018
+New York,4764261,2018
+North Carolina,1581469,2018
+North Dakota,48957,2018
+Ohio,2450031,2018
+Oklahoma,649023,2018
+Oregon,847570,2018
+Pennsylvania,2627563,2018
+Rhode Island,302407,2018
+South Carolina,1195703,2018
+South Dakota,92184,2018
+Tennessee,1386664,2018
+Texas,3845916,2018
+Utah,271137,2018
+Vermont,123310,2018
+Virginia,875351,2018
+Washington,1781048,2018
+West Virginia,407193,2018
+Wisconsin,811920,2018
+Wyoming,136,2018
+Alabama,869791,2019
+Alaska,0,2019
+Arizona,1580628,2019
+Arkansas,822839,2019
+California,10394575,2019
+Colorado,1182928,2019
+Connecticut,0,2019
+Delaware,208650,2019
+District of Columbia,249119,2019
+Florida,3097487,2019
+Georgia,1466300,2019
+Hawaii,327762,2019
+Idaho,289155,2019
+Illinois,2122611,2019
+Indiana,1074748,2019
+Iowa,603246,2019
+Kansas,341879,2019
+Kentucky,1224145,2019
+Louisiana,1501128,2019
+Maine,242488,2019
+Maryland,1190559,2019
+Massachusetts,1187701,2019
+Michigan,4650365,2019
+Minnesota,849507,2019
+Mississippi,436028,2019
+Missouri,840878,2019
+Montana,207316,2019
+Nebraska,247490,2019
+Nevada,575184,2019
+New Hampshire,173073,2019
+New Jersey,1499339,2019
+New Mexico,668435,2019
+New York,4705224,2019
+North Carolina,1621483,2019
+North Dakota,45939,2019
+Ohio,2371585,2019
+Oklahoma,645075,2019
+Oregon,869710,2019
+Pennsylvania,2626598,2019
+Rhode Island,293043,2019
+South Carolina,1253433,2019
+South Dakota,90253,2019
+Tennessee,1437688,2019
+Texas,3742053,2019
+Utah,258484,2019
+Vermont,108731,2019
+Virginia,1275928,2019
+Washington,1742684,2019
+West Virginia,387376,2019
+Wisconsin,812661,2019
+Wyoming,137,2019
+Alabama,861758,2020
+Alaska,0,2020
+Arizona,1711292,2020
+Arkansas,875994,2020
+California,10650556,2020
+Colorado,1266374,2020
+Connecticut,0,2020
+Delaware,217895,2020
+District of Columbia,247592,2020
+Florida,3580237,2020
+Georgia,1647055,2020
+Hawaii,360277,2020
+Idaho,344075,2020
+Illinois,2394304,2020
+Indiana,1200444,2020
+Iowa,603274,2020
+Kansas,365808,2020
+Kentucky,1418458,2020
+Louisiana,1612144,2020
+Maine,265968,2020
+Maryland,1256287,2020
+Massachusetts,1239099,2020
+Michigan,2415313,2020
+Minnesota,941818,2020
+Mississippi,450665,2020
+Missouri,815724,2020
+Montana,235052,2020
+Nebraska,261472,2020
+Nevada,650160,2020
+New Hampshire,190713,2020
+New Jersey,1588936,2020
+New Mexico,718655,2020
+New York,5014525,2020
+North Carolina,1703303,2020
+North Dakota,52986,2020
+Ohio,2575003,2020
+Oklahoma,701359,2020
+Oregon,969719,2020
+Pennsylvania,2842424,2020
+Rhode Island,301740,2020
+South Carolina,1277117,2020
+South Dakota,79462,2020
+Tennessee,1464590,2020
+Texas,4074510,2020
+Utah,324302,2020
+Vermont,118656,2020
+Virginia,1473316,2020
+Washington,1830122,2020
+West Virginia,429336,2020
+Wisconsin,933527,2020
+Wyoming,135,2020
+Alabama,951174,2021
+Alaska,0,2021
+Arizona,1920290,2021
+Arkansas,963945,2021
+California,11674619,2021
+Colorado,1422844,2021
+Connecticut,0,2021
+Delaware,244822,2021
+District of Columbia,268245,2021
+Florida,4099027,2021
+Georgia,2229243,2021
+Hawaii,420033,2021
+Idaho,391216,2021
+Illinois,2680873,2021
+Indiana,1474054,2021
+Iowa,711427,2021
+Kansas,407229,2021
+Kentucky,1582351,2021
+Louisiana,1759372,2021
+Maine,326611,2021
+Maryland,1520599,2021
+Massachusetts,1387657,2021
+Michigan,2692435,2021
+Minnesota,1150333,2021
+Mississippi,475168,2021
+Missouri,810775,2021
+Montana,245390,2021
+Nebraska,334939,2021
+Nevada,792428,2021
+New Hampshire,218604,2021
+New Jersey,1821033,2021
+New Mexico,781820,2021
+New York,5620459,2021
+North Carolina,2054350,2021
+North Dakota,86164,2021
+Ohio,2782891,2021
+Oklahoma,1049630,2021
+Oregon,1164999,2021
+Pennsylvania,3155790,2021
+Rhode Island,336240,2021
+South Carolina,1446070,2021
+South Dakota,83890,2021
+Tennessee,1596482,2021
+Texas,4770549,2021
+Utah,402216,2021
+Vermont,131002,2021
+Virginia,1692156,2021
+Washington,2008655,2021
+West Virginia,488048,2021
+Wisconsin,1081647,2021
+Wyoming,0,2021
+Alabama,1028114,2022
+Alaska,0,2022
+Arizona,2066895,2022
+Arkansas,1707791,2022
+California,12841729,2022
+Colorado,1544749,2022
+Connecticut,0,2022
+Delaware,268117,2022
+District of Columbia,288796,2022
+Florida,5076398,2022
+Georgia,2416856,2022
+Hawaii,450159,2022
+Idaho,404124,2022
+Illinois,2796521,2022
+Indiana,1659715,2022
+Iowa,761121,2022
+Kansas,443835,2022
+Kentucky,1494070,2022
+Louisiana,1839327,2022
+Maine,345429,2022
+Maryland,1496250,2022
+Massachusetts,1387657,2022
+Michigan,3074187,2022
+Minnesota,1168879,2022
+Mississippi,367137,2022
+Missouri,1016503,2022
+Montana,243475,2022
+Nebraska,373534,2022
+Nevada,839650,2022
+New Hampshire,236926,2022
+New Jersey,1950681,2022
+New Mexico,814749,2022
+New York,5889363,2022
+North Carolina,2245044,2022
+North Dakota,95076,2022
+Ohio,2962997,2022
+Oklahoma,824413,2022
+Oregon,1265779,2022
+Pennsylvania,3484439,2022
+Rhode Island,351133,2022
+South Carolina,1060312,2022
+South Dakota,104455,2022
+Tennessee,1697632,2022
+Texas,5328691,2022
+Utah,449492,2022
+Vermont,134347,2022
+Virginia,1794045,2022
+Washington,1894623,2022
+West Virginia,589322,2022
+Wisconsin,1162594,2022
+Wyoming,0,2022

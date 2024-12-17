@@ -26,10 +26,6 @@ mandate <- read_dta(paste0(path, "/Input_Data/Medicaid_managedcare_enrollment_re
 
 data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
 
-data <- data %>%
-  filter(state != "Puerto Rico")
-
-
 ### ------------------------------- Table 1 -------------------------------- ###
 
 data_agg <- data %>%
@@ -79,9 +75,27 @@ tbl3_data <- tbl3_data %>%
   summarise(total_med_spending = sum(`total medicaid (mt + at)`, na.rm = T))
 
 # Join annual CPI to panel
-data_adj <- left_join(tbl3_data, cpi_data, by = "year")
 
-data_adj$cpi <- data_adj$cpi
+# Get API Key from Fed. Reserve
+fredr_set_key("8664fb88934dc0a2a037b8c6b153e4e5")
+
+# Fetch annual CPI data for 'CPIAUCSL' 
+# (Consumer Price Index for All Urban Consumers, All Items)
+cpi_data <- fredr(
+  series_id = "CPIMEDSL",
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2023-12-31"),
+  frequency = "a"
+)
+
+# Calculate year-over-year percentage change (inflation rate) in CPI
+cpi_data <- cpi_data %>%
+  arrange(date) %>%
+  mutate(year = as.numeric(format(date, "%Y"))) %>%
+  rename(cpi = value) %>%
+  select(year, cpi)
+
+data_adj <- left_join(tbl3_data, cpi_data, by = "year")
 
 cpi_2010 <- cpi_data[cpi_data$year == 2010, ]$cpi
 
@@ -108,7 +122,7 @@ fredr_set_key("8664fb88934dc0a2a037b8c6b153e4e5")
 # Fetch annual CPI data for 'CPIAUCSL' 
 # (Consumer Price Index for All Urban Consumers, All Items)
 cpi_data <- fredr(
-  series_id = "CPIAUCSL",
+  series_id = "CPIMEDSL",
   observation_start = as.Date("1990-01-01"),
   observation_end = as.Date("2023-12-31"),
   frequency = "a"
@@ -131,7 +145,7 @@ data_adj <- data_adj %>%
   mutate(adj_factor = cpi_2010 / cpi)
 
 data_adj <- data_adj %>%
-  mutate(across(28:456, ~. * adj_factor))
+  mutate(across(29:457, ~. * adj_factor))
 
 data_adj <- data_adj %>%
   mutate(spending_per_recip = `total medicaid (mt + at)` / total_med_enr)
@@ -150,7 +164,34 @@ tbl4 <- tbl4 %>%
 
 ### ------------------------------------------------------------------------ ###
 
+data_91_05_copy <- data_91_05 %>%
+  filter(year <= 2003) %>%
+  filter(state != "Puerto Rico") %>%
+  select(state, year, `total medicaid (mt + at)`) %>%
+  rename(tam_spending = `total medicaid (mt + at)`)
 
+new_merged_data_copy <- new_merged_data %>%
+  filter(year >= 1991 & year <= 2003) %>%
+  filter(state != "Puerto Rico") %>%
+  select(state, year, `total medicaid (mt + at)`) %>%
+  rename(my_spending = `total medicaid (mt + at)`)
+
+joined_set <- full_join(new_merged_data_copy, 
+                        data_91_05_copy, 
+                        by = c("state", "year")) %>%
+  mutate(consistent = my_spending == tam_spending,
+         diff = my_spending - tam_spending)
+
+
+ggplot(joined_set, aes(x = tam_spending, y = my_spending)) +
+  geom_point(aes(color = consistent), size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("blue", "red"), labels = c("Consistent", "Inconsistent")) +
+  labs(title = "Scatterplot Comparing Spending (My Data vs Tamara's)",
+       x = "Tamara's Data",
+       y = "My Data",
+       color = "Consistency") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "black") +
+  theme_pub()
 
 
 

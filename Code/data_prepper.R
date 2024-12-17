@@ -749,7 +749,42 @@ new_merged_data <- new_merged_data %>%
 
 saveRDS(new_merged_data, file = paste0(path, "/Temp/new_merged_panel.rds"))
 
+### ------------- Append Managed Care enrollment for 2011 - 2022 ----------- ###
 new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
+
+any_mc_15_22 <- read_csv(paste0(path, "/Temp/any_mmc_2015_2022.csv"))
+
+new_merged_data2 <- coalesce_join(main_data = new_merged_data,
+                                  join_data = any_mc_15_22,
+                                  by_cols = c("state", "year"),
+                                  coalesce_cols = c("managed_care_enrollment"),
+                                  reorder_cols = reorder_cols)
+
+# Impute 2007 and 2012 managed care enrollment using average between
+# 2006-2008 and 2011-2013
+new_merged_data2 <- new_merged_data2 %>%
+  group_by(state) %>%
+  mutate(managed_care_enrollment = case_when(
+    year == 2007 ~ (managed_care_enrollment[year == 2006] + managed_care_enrollment[year == 2008]) / 2,
+    year == 2012 ~ (managed_care_enrollment[year == 2011] + managed_care_enrollment[year == 2013]) / 2,
+    TRUE ~ managed_care_enrollment
+  )) %>%
+  ungroup()
+
+# Fill in NAs with 0's
+new_merged_data2$managed_care_enrollment <- ifelse(is.na(new_merged_data2$managed_care_enrollment),
+                                                   0,
+                                                   new_merged_data2$managed_care_enrollment)
+
+# Omit 2023 for now -- enrollment report not published yet
+new_merged_data2 <- new_merged_data2 %>%
+  filter(year != 2023)
+
+new_merged_data2 <- new_merged_data2 %>%
+  mutate(pct_in_managed_care = managed_care_enrollment / total_med_enr,
+         pct_in_comp_mco = crb_mc_enrollees / total_med_enr)
+
+saveRDS(new_merged_data2, file = paste0(path, "/Temp/new_merged_panel2.rds"))
 
 ### ---------- Integrate mandate data and county-level Census data --------- ###
 
@@ -913,7 +948,7 @@ cpi_data <- cpi_data %>%
   
 
 # Join annual CPI to panel
-new_merged_data_adj <- left_join(new_merged_data, cpi_data, by = "year")
+new_merged_data_adj <- left_join(new_merged_data2, cpi_data, by = "year")
 
 cpi_2023 <- cpi_data[cpi_data$year == 2023, ]$cpi
 
