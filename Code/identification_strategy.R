@@ -8,7 +8,7 @@ library(tidyverse)
 path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
                   "medicaid_privatization_exp")
 
-new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
+new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel2.rds"))
 
 # Get the 663 observations
 new_merged_data <- new_merged_data %>%
@@ -105,9 +105,103 @@ spec2 <- lm(pct_in_managed_care ~ pct_with_mandate + factor(state) +
               factor(year) + , data = main_data)
 
 
-### ----------------------- New Treatment Definition ----------------------- ###
+### ----------------------- Jump in Prop. of MMC --------------------------- ###
+new_merged_data <- new_merged_data %>%
+  mutate(pct_in_managed_care = ifelse(pct_in_managed_care > 1, 
+                                      1, 
+                                      pct_in_managed_care))
 
-# Calculating jump of proportion of Comp MCO 10%, 20%
+unique_states <- unique(new_merged_data$state)
+output_dir <- file.path(path, "Output", "state_plots")
+
+# Calculate the magnitude of the jump in MMC enrollment
+jumps <- new_merged_data %>%
+  group_by(state) %>%
+  arrange(year, .by_group = TRUE) %>%
+  mutate(
+    mmc_jump = pct_in_managed_care - lag(pct_in_managed_care),
+    mmc_lag = lag(pct_in_managed_care)
+  ) %>%
+  filter(!is.na(mmc_jump)) %>%
+  summarise(
+    max_jump = max(mmc_jump, na.rm = TRUE),
+    treatment_year = ifelse(max_jump > 0,
+                            year[which.max(mmc_jump)],
+                            NA)
+  ) %>%
+  ungroup()
+
+new_merged_data_temp <- new_merged_data %>%
+  left_join(jumps, by = "state")
+
+saveRDS(jumps, file = paste0(path, "/Temp/jumps.rds"))
+
+for (st in unique_states) {
+  state_data <- new_merged_data_temp %>%
+    filter(state == st)
+  
+  p <- ggplot(state_data, aes(x = year, y = pct_in_managed_care, color = state)) +
+    geom_line(linewidth = 1) +
+    labs(title = "Share of Managed Care Enrollment by State",
+         subtitle = "1991-2022",
+         x = "Year",
+         y = "Share of Enrollees") +
+    scale_x_continuous(breaks = seq(1991, 2023, by = 2),
+                       limits = c(1991, 2023)) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.20),
+                       limits = c(0, 1),
+                       labels = scales::percent) +
+    geom_vline(data = state_data %>% filter(year == treatment_year),
+               aes(xintercept = treatment_year, color = state),
+               linetype = "dashed", size = 1) +
+    theme_pub()
+  
+  output_path <- file.path(output_dir, paste0(st, ".png"))
+  ggsave(output_path, plot = p, width = 10, height = 8, dpi = 300)
+}
+
+# Calculate increase in mandate for treatment year
+jumps$state <- tolower(jumps$state)
+
+mandates2 <- left_join(mandates, jumps, by = c("stname" = "state"))
+mandates2 <- mandates2 %>% select(-max_jump)
+
+# Keep states whose treatment years aren't NA or past 2003 (Mandates are only
+# present from 1991 - 2003)
+res <- mandates2 %>%
+  filter(!is.na(treatment_year) & treatment_year <= 2003) %>%
+  group_by(stname) %>%
+  summarise(treatment_year = unique(treatment_year),
+            pct_with_mandate_change = pct_with_mandate[year == treatment_year] - 
+              pct_with_mandate[year == (treatment_year - 1)]) %>%
+  ungroup()
+
+# Plot distribution of jump % of MMC enrollment
+ggplot(jumps, (aes(x = max_jump))) +
+  geom_histogram(binwidth = 0.05) +
+  labs(
+    title = "Distribution of Jump in Prop. of MMC Enrollment",
+    subtitle = "Treatment year ranges from 1991 - 2022",
+    x = "Jump in Prop. of MMC Enrollment (%)",
+    y = "Frequency"
+  ) +
+  theme_pub()
+
+# Plot distribution of change in % of mandate in treatment year (derived from calculating
+# the jumps)
+ggplot(res, (aes(x = pct_with_mandate_change))) +
+  geom_histogram(binwidth = 0.05) +
+  labs(
+    title = "Distribution of Change in % of Mandate in Treatment Year",
+    subtitle = "Mandate data ranges from 1991 - 2003; state treatment year derived from jump calculation",
+    x = "Change in % of Mandate",
+    y = "Frequency"
+    ) +
+  theme_pub()
+
+### ----------------- Linear Model to Define Treatment Year ---------------- ###
+
+# If I want to find treatment year for comprehensive risk based managed care
 new_merged_data <- new_merged_data %>%
   arrange(state, year) %>%
   group_by(state) %>%
@@ -135,7 +229,7 @@ for (state_i in states_vec) {
     filter(state == state_i)
   
   # Check if pct_in_comp_mco is constant or has only NA values
-  if (all(is.na(state_data$pct_in_comp_mco)) || var(state_data$pct_in_comp_mco, na.rm = TRUE) == 0) {
+  if (all(is.na(state_data$pct_in_managed_care)) || var(state_data$pct_in_managed_care, na.rm = TRUE) == 0) {
     print(paste("Skipping state:", state_i, "- pct_in_comp_mco is constant or all NA"))
     next
   }
@@ -156,7 +250,7 @@ for (state_i in states_vec) {
       mutate(treat = as.numeric(year >= t_prime))
     
     # Fit regression
-    model <- lm(pct_in_comp_mco ~ treat, data = state_data)
+    model <- lm(pct_in_managed_care ~ treat, data = state_data)
     
     # Extract R-squared and save result
     r_squared <- summary(model)$r.squared
@@ -217,6 +311,14 @@ for (st in unique_states) {
 }
 
 
-
-
 saveRDS(final_res, file = paste0(path, "/Temp/t_primes.rds"))
+
+
+
+
+
+
+
+
+
+

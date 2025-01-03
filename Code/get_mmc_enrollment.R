@@ -2,6 +2,31 @@
 #' get_mmc_enrollment.R -- Clean and aggregate MMC summary reports
 #'                         Key column: Enrollment in Managed Care/any MC
 #'
+### ----------------------------- FUNCTIONS -------------------------------- ###
+
+tbl_cleaner <- function(df) {
+  names(df) <- tolower(names(df))
+  names(df) <- gsub(" ", "_", names(df))
+  
+  df <- df %>%
+    select(state,
+           total_medicaid_enrollment_in_any_type_of_managed_care,
+           year) %>%
+    rename(managed_care_enrollment = total_medicaid_enrollment_in_any_type_of_managed_care) %>%
+    mutate(managed_care_enrollment = gsub(",", "", managed_care_enrollment),
+           managed_care_enrollment = as.numeric(managed_care_enrollment))
+  
+  df$state <- gsub("[0-9]", "", df$state)
+  
+  df <- df %>%
+    filter(!state %in% territories)
+  
+  df$managed_care_enrollment <- as.numeric(df$managed_care_enrollment)
+  
+  return(df)
+}
+
+### ------------------------------------------------------------------------ ###
 
 library(dplyr)
 library(readxl)
@@ -105,28 +130,6 @@ file_names <- paste0(path, "/data_", years, ".csv")
 data_list <- lapply(file_names, read_csv)
 
 names(data_list) <- years
-
-tbl_cleaner <- function(df) {
-  names(df) <- tolower(names(df))
-  names(df) <- gsub(" ", "_", names(df))
-  
-  df <- df %>%
-    select(state,
-           total_medicaid_enrollment_in_any_type_of_managed_care,
-           year) %>%
-    rename(managed_care_enrollment = total_medicaid_enrollment_in_any_type_of_managed_care) %>%
-    mutate(managed_care_enrollment = gsub(",", "", managed_care_enrollment),
-           managed_care_enrollment = as.numeric(managed_care_enrollment))
-  
-  df$state <- gsub("[0-9]", "", df$state)
-  
-  df <- df %>%
-    filter(!state %in% territories)
-  
-  df$managed_care_enrollment <- as.numeric(df$managed_care_enrollment)
-
-  return(df)
-}
 
 # Apply the standardization
 new_data_list <- lapply(data_list, tbl_cleaner)

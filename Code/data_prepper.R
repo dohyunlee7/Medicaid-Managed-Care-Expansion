@@ -927,6 +927,8 @@ saveRDS(mp_agg_tbl2, file = paste0(path, "/Temp/mandate_pcts_by_st_yr.rds"))
 
 library(fredr)
 
+new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
+
 # Get API Key from Fed. Reserve
 fredr_set_key("8664fb88934dc0a2a037b8c6b153e4e5")
 
