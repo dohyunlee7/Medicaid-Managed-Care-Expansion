@@ -15,7 +15,7 @@ new_merged_data <- new_merged_data %>%
   filter(state != "Puerto Rico",
          year <= 2003)
 
-mandates <- readRDS(paste0(path, "/Temp/mandate_pcts_by_st_yr.rds"))
+mandates <- readRDS(paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))
 
 # Reformat state names
 mandates$stname <- str_to_title(mandates$stname)
@@ -68,7 +68,7 @@ model1 <- lm(log(`total medicaid (mt + at)`) ~ factor(state) + factor(year) +
 
 summary(model1)
 
-### EFFECT OF STATE AND LOCAL MANDATES ON MMC ENROLLMENT ##
+### EFFECT OF STATE AND LOCAL MANDATES ON MMC ENROLLMENT ###
 
 # Column 0 (mu, sigma)
 column0 <- main_data %>%
@@ -136,45 +136,94 @@ new_merged_data_temp <- new_merged_data %>%
 
 saveRDS(jumps, file = paste0(path, "/Temp/jumps.rds"))
 
-for (st in unique_states) {
-  state_data <- new_merged_data_temp %>%
-    filter(state == st)
-  
-  p <- ggplot(state_data, aes(x = year, y = pct_in_managed_care, color = state)) +
-    geom_line(linewidth = 1) +
-    labs(title = "Share of Managed Care Enrollment by State",
-         subtitle = "1991-2022",
-         x = "Year",
-         y = "Share of Enrollees") +
-    scale_x_continuous(breaks = seq(1991, 2023, by = 2),
-                       limits = c(1991, 2023)) +
-    scale_y_continuous(breaks = seq(0, 1, by = 0.20),
-                       limits = c(0, 1),
-                       labels = scales::percent) +
-    geom_vline(data = state_data %>% filter(year == treatment_year),
-               aes(xintercept = treatment_year, color = state),
-               linetype = "dashed", size = 1) +
-    theme_pub()
-  
-  output_path <- file.path(output_dir, paste0(st, ".png"))
-  ggsave(output_path, plot = p, width = 10, height = 8, dpi = 300)
-}
-
 # Calculate increase in mandate for treatment year
-jumps$state <- tolower(jumps$state)
-
 mandates2 <- left_join(mandates, jumps, by = c("stname" = "state"))
-mandates2 <- mandates2 %>% select(-max_jump)
+mandates3 <- mandates2 %>% select(-max_jump, -treatment_year)
 
-# Keep states whose treatment years aren't NA or past 2003 (Mandates are only
-# present from 1991 - 2003)
+# Join state-year mandate data to panel
+new_merged_data_temp <- new_merged_data_temp %>%
+  left_join(mandates3, by = c("state" = "stname", "year"))
+
+# Keep states whose treatment years aren't NA or past 2001 (Mandates are only
+# present from 1991 - 2001)
+# Calculate the change in mandate percentage where the treatment year is defined
 res <- mandates2 %>%
-  filter(!is.na(treatment_year) & treatment_year <= 2003) %>%
+  filter(!is.na(treatment_year) & treatment_year <= 2001) %>%
   group_by(stname) %>%
   summarise(treatment_year = unique(treatment_year),
             pct_with_mandate_change = pct_with_mandate[year == treatment_year] - 
               pct_with_mandate[year == (treatment_year - 1)]) %>%
   ungroup()
+
+# Remove treatment year to avoid repeat column
+res <- res %>% select(-treatment_year)
+
+# Join % change in MMC for treatment year onto panel
+new_merged_data_temp <- new_merged_data_temp %>%
+  left_join(res, by = c("state" = "stname"))
+
+for (st in unique_states) {
+  state_data <- new_merged_data_temp %>%
+    filter(state == st) %>%
+    mutate(pct_in_managed_care = as.numeric(pct_in_managed_care),
+           pct_with_mandate = as.numeric(pct_with_mandate))
+  
+  y_max <- state_data %>%
+    filter(year >= (treatment_year - 1) & year <= (treatment_year + 1)) %>%
+    summarize(max_y = max(pct_in_managed_care)) %>%
+    pull(max_y)
+  
+  p <- ggplot(state_data) +
+    geom_line(aes(x = year, 
+                  y = pct_in_managed_care, 
+                  color = "Share of MMC Enrollment"),
+              linewidth = 1) +
+    geom_line(data = state_data %>% filter(year <= 2001),
+              aes(x = year, 
+                  y = pct_with_mandate, 
+                  color = "Share of Counties with MMC Mandate"),
+              linewidth = 1) +
+    geom_line(data = state_data %>% filter(year >= 2001),
+              aes(x = year, 
+                  y = pct_with_mandate, 
+                  color = "Share of Counties with MMC Mandate"),
+              linewidth = 1,
+              linetype = "dashed") +
+    labs(title = paste0("Share of Managed Care Enrollment: ", st),
+         subtitle = "1991-2022",
+         x = "Year",
+         y = "Share of Enrollees") +
+    scale_x_continuous(breaks = seq(1991, 2022, by = 2),
+                       limits = c(1991, 2022)) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.20),
+                       limits = c(0, 1),
+                       labels = scales::percent) +
+    geom_vline(data = state_data %>% filter(year == treatment_year),
+               aes(xintercept = treatment_year, color = pubblue),
+               linetype = "dashed", 
+               linewidth = 1) +
+    annotate("text",
+             x = state_data$treatment_year + 1,
+             y = y_max - 0.10,
+             label = paste0("Jump Magnitude: ", 
+                            scales::percent(max(state_data$max_jump))),
+             size = 4,
+             hjust = 0) +
+    annotate("text",
+             x = state_data$treatment_year + 1,
+             y = y_max - 0.15,
+             label = paste0("Prop. Jump in Mandate (Treat Yr): ", 
+                            scales::percent(state_data$pct_with_mandate_change)),
+             size = 4,
+             hjust = 0) +
+    scale_color_manual(values = c("Share of MMC Enrollment" = pubblue,
+                                  "Share of Counties with MMC Mandate" = pubred)) +
+    theme_pub()
+  
+  output_path <- file.path(output_dir, paste0(st, ".png"))
+  ggsave(output_path, plot = p, width = 16, height = 12, dpi = 300)
+}
+
 
 # Plot distribution of jump % of MMC enrollment
 ggplot(jumps, (aes(x = max_jump))) +
@@ -198,6 +247,9 @@ ggplot(res, (aes(x = pct_with_mandate_change))) +
     y = "Frequency"
     ) +
   theme_pub()
+
+### --------- Expanding and Plotting Theoretical Mandate Expansions -------- ###
+
 
 ### ----------------- Linear Model to Define Treatment Year ---------------- ###
 

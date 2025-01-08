@@ -801,6 +801,44 @@ census_2000 <- read_csv(paste0(path, file.path("/Input_Data",
                                                "census",
                                                "co-est00int-tot.csv")))
 
+census_2010 <- read_csv(paste0(path, file.path("/Input_Data",
+                                               "Medicaid_managedcare_enrollment_report",
+                                               "census",
+                                               "co-est2019-alldata.csv")))
+
+census_1990 <- read_excel(paste0(path, file.path("/Input_Data",
+                                                 "Medicaid_managedcare_enrollment_report",
+                                                 "census",
+                                                 "census1990_2000.xlsx")))
+
+census_1990 <- census_1990[, -(14:18)]
+
+names(census_1990) <- tolower(names(census_1990))
+
+census_1990$fipscode <- gsub("^([0-9]{4})$", "0\\1", census_1990$fipscode)
+
+census_1990 <- census_1990 %>%
+  mutate(stname = ifelse(ctyname %in% state.name, ctyname, NA)) %>%
+  fill(stname, .direction = "down")
+
+census_1990 <- census_1990 %>%
+  select(fipscode, 
+         ctyname, 
+         stname, 
+         estimatesbase1990,
+         popestimate1990,
+         popestimate1991,
+         popestimate1992,
+         popestimate1993,
+         popestimate1994,
+         popestimate1995,
+         popestimate1996,
+         popestimate1997,
+         popestimate1998,
+         popestimate1999,
+         popestimate2000)
+
+
 # Lower case variable names
 names(census_2000) <- tolower(names(census_2000))
 
@@ -921,6 +959,20 @@ mp_agg_tbl2 <- mandate_pop %>%
          pct_with_mixedmand)
 
 saveRDS(mp_agg_tbl2, file = paste0(path, "/Temp/mandate_pcts_by_st_yr.rds"))
+
+### ---------------------- Expanding Theoretical Mandate ------------------- ###
+# Read in county level mandate level
+mandate <- read_dta(paste0(path, file.path("/Input_Data",
+                                           "Medicaid_managedcare_enrollment_report",
+                                           "external",
+                                           "uimmc.dta")))
+
+
+# Read in county-level Census population data for 2000-2010
+census_2000 <- read_csv(paste0(path, file.path("/Input_Data",
+                                               "Medicaid_managedcare_enrollment_report",
+                                               "census",
+                                               "co-est00int-tot.csv")))
 
 
 ### ---------------------- Adjust spending for inflation ------------------- ###
