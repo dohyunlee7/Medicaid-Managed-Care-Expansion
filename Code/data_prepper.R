@@ -795,7 +795,11 @@ mandate <- read_dta(paste0(path, file.path("/Input_Data",
                                            "uimmc.dta")))
 
 
-# Read in county-level Census population data for 2000-2010
+# Read in county-level Census population data for 1990-2023
+census_1990 <- read_excel(paste0(path, file.path("/Input_Data",
+                                                 "Medicaid_managedcare_enrollment_report",
+                                                 "census",
+                                                 "census1990_2000.xlsx")))
 census_2000 <- read_csv(paste0(path, file.path("/Input_Data",
                                                "Medicaid_managedcare_enrollment_report",
                                                "census",
@@ -806,15 +810,18 @@ census_2010 <- read_csv(paste0(path, file.path("/Input_Data",
                                                "census",
                                                "co-est2019-alldata.csv")))
 
-census_1990 <- read_excel(paste0(path, file.path("/Input_Data",
+census_2020 <- read_excel(paste0(path, file.path("/Input_Data",
                                                  "Medicaid_managedcare_enrollment_report",
                                                  "census",
-                                                 "census1990_2000.xlsx")))
+                                                 "co-est2023-pop.xlsx")))
+
+
 
 census_1990 <- census_1990[, -(14:18)]
 
 names(census_1990) <- tolower(names(census_1990))
 
+# Add 0 in front of the FIPS codes that are supposed to have 0's in front
 census_1990$fipscode <- gsub("^([0-9]{4})$", "0\\1", census_1990$fipscode)
 
 census_1990 <- census_1990 %>%
@@ -835,19 +842,84 @@ census_1990 <- census_1990 %>%
          popestimate1996,
          popestimate1997,
          popestimate1998,
-         popestimate1999,
-         popestimate2000)
+         popestimate1999)
+
+census_1990$ctyname <- tolower(census_1990$ctyname)
+census_1990$stname <- tolower(census_1990$stname)
+
+census_1990$ctyname <- gsub("-", " ", census_1990$ctyname)
+
+census_1990 <- census_1990 %>%
+  filter(!is.na(ctyname))
 
 
 # Lower case variable names
 names(census_2000) <- tolower(names(census_2000))
 
 # Select variables
-census_2000 <- census_2000 %>%
-  select(stname, ctyname, popestimate2000)
+# census_2000 <- census_2000 %>%
+#   select(stname, ctyname, popestimate2000)
 
 census_2000$ctyname <- tolower(census_2000$ctyname)
 census_2000$stname <- tolower(census_2000$stname)
+
+census_2000$ctyname <- gsub("-", " ", census_2000$ctyname)
+
+census_2000 <- census_2000 %>%
+  select(ctyname, 
+         stname, 
+         popestimate2000, 
+         popestimate2001,
+         popestimate2002,
+         popestimate2003,
+         popestimate2004,
+         popestimate2005,
+         popestimate2006,
+         popestimate2007,
+         popestimate2008,
+         popestimate2009)
+
+# Manipulating 2010-2019 population
+names(census_2010) <- tolower(names(census_2010))
+
+# Error reading because of special character (tilde n)
+census_2010[census_2010$state == "35" & census_2010$county == "013", ]$ctyname <-
+  "Dona Ana County"
+
+census_2010$ctyname <- tolower(census_2010$ctyname)
+census_2010$stname <- tolower(census_2010$stname)
+
+census_2010$ctyname <- gsub("-", " ", census_2010$ctyname)
+
+census_2010 <- census_2010 %>%
+  select(stname, 
+         ctyname, 
+         popestimate2010,
+         popestimate2011,
+         popestimate2012,
+         popestimate2013,
+         popestimate2014,
+         popestimate2015,
+         popestimate2016,
+         popestimate2017,
+         popestimate2018,
+         popestimate2019)
+
+# Joining 
+census_data <- left_join(census_1990, census_2000, by = c("stname", "ctyname"))
+census_data <- left_join(census_data, census_2010, by = c("stname", "ctyname"))
+
+# Adding on 2020-2023 county populations
+census_2020$ctyname <- tolower(census_2020$ctyname)
+census_2020$stname <- tolower(census_2020$stname)
+census_2020$ctyname <- gsub("-", " ", census_2020$ctyname)
+
+census_2020 <- census_2020 %>%
+  select(ctyname, stname, popestimate2020, popestimate2021, popestimate2022)
+
+census_data <- left_join(census_data, census_2020, by = c("stname", "ctyname"))
+
+
 
 # Add " county" at the end of string if it doesn't contain "State of" or DC
 mandate$county97 <- ifelse(
@@ -860,7 +932,7 @@ mandate$county97 <- ifelse(
 mandate$county97 <- tolower(mandate$county97)
 mandate$stname97 <- tolower(mandate$stname97)
 
-
+# Louisiana's counties are called parishes
 mandate$county97 <- ifelse(
   mandate$stname97 == "louisiana",
   gsub(" county", " parish", mandate$county97),
@@ -874,39 +946,93 @@ mandate$county97 <- gsub("state of ", "", mandate$county97)
 new_rows <- mandate %>%
   group_by(stname97, county97) %>%
   filter(year == 2001) %>%
-  mutate(year = list(c(2002, 2003))) %>%
+  mutate(year = list(2002:2022)) %>%
   unnest(year) %>%
   bind_rows(mandate) %>%
   arrange(stname97, county97, year)
 
-mandate_pop <- left_join(census_2000, 
+mandate_pop <- left_join(census_data, 
                          new_rows, 
-                         by = c("stname" = "stname97", "ctyname" = "county97"))
+                         by = c("fipscode" = "fips97", 
+                                "stname" = "stname97",
+                                "ctyname" = "county97"))
 
 # Remove Yellowstone National Park, which likely doesn't have a human population
 mandate_pop <- mandate_pop %>%
-  filter(fips97 != 30111) %>%
-  filter(year != 1990)
+  filter(fipscode != 30111) %>%
+  filter(year != 1990)%>%
+  select(-estimatesbase1990, -popestimate1990)
 
 
 # Create dummy for inverse of "no MMC" (better readability)
 mandate_pop$mmc <- mandate_pop$nommc - 1
 mandate_pop$mmc <- mandate_pop$mmc * -1
 
+# mandate_pop <- mandate_pop %>%
+#   mutate(
+#     hmom_pop = hmom * popestimate2000,
+#     hmov_pop = hmov * popestimate2000,
+#     pccmm_pop = pccmm * popestimate2000,
+#     pccmv_pop = pccmv * popestimate2000,
+#     mmc_pop = mmc * popestimate2000,
+#     hmo = ifelse(hmom == 1 | hmov == 1, 1, 0),
+#     hmopop = hmo * popestimate2000,
+#     pccmm_only_pop = pccmm_only * popestimate2000,
+#     onlyvol_pop = onlyvol * popestimate2000,
+#     mandhmo_pop = mandhmo * popestimate2000,
+#     mixedmand_pop = mixedmand * popestimate2000
+#   )
+
 mandate_pop <- mandate_pop %>%
   mutate(
-    hmom_pop = hmom * popestimate2000,
-    hmov_pop = hmov * popestimate2000,
-    pccmm_pop = pccmm * popestimate2000,
-    pccmv_pop = pccmv * popestimate2000,
-    mmc_pop = mmc * popestimate2000,
+    popestimate = case_when(
+      year == 1991 ~ popestimate1991,
+      year == 1992 ~ popestimate1992,
+      year == 1993 ~ popestimate1993,
+      year == 1994 ~ popestimate1994,
+      year == 1995 ~ popestimate1995,
+      year == 1996 ~ popestimate1996,
+      year == 1997 ~ popestimate1997,
+      year == 1998 ~ popestimate1998,
+      year == 1999 ~ popestimate1999,
+      year == 2000 ~ popestimate2000,
+      year == 2001 ~ popestimate2001,
+      year == 2002 ~ popestimate2002,
+      year == 2003 ~ popestimate2003,
+      year == 2004 ~ popestimate2004,
+      year == 2005 ~ popestimate2005,
+      year == 2006 ~ popestimate2006,
+      year == 2007 ~ popestimate2007,
+      year == 2008 ~ popestimate2008,
+      year == 2009 ~ popestimate2009,
+      year == 2010 ~ popestimate2010,
+      year == 2011 ~ popestimate2011,
+      year == 2012 ~ popestimate2012,
+      year == 2013 ~ popestimate2013,
+      year == 2014 ~ popestimate2014,
+      year == 2015 ~ popestimate2015,
+      year == 2016 ~ popestimate2016,
+      year == 2017 ~ popestimate2017,
+      year == 2018 ~ popestimate2018,
+      year == 2019 ~ popestimate2019,
+      year == 2020 ~ popestimate2020,
+      year == 2021 ~ popestimate2021,
+      year == 2022 ~ popestimate2022
+    ),
+    # Apply the multipliers
+    hmom_pop = hmom * popestimate,
+    hmov_pop = hmov * popestimate,
+    pccmm_pop = pccmm * popestimate,
+    pccmv_pop = pccmv * popestimate,
+    mmc_pop = mmc * popestimate,
     hmo = ifelse(hmom == 1 | hmov == 1, 1, 0),
-    hmopop = hmo * popestimate2000,
-    pccmm_only_pop = pccmm_only * popestimate2000,
-    onlyvol_pop = onlyvol * popestimate2000,
-    mandhmo_pop = mandhmo * popestimate2000,
-    mixedmand_pop = mixedmand * popestimate2000
+    hmopop = hmo * popestimate,
+    pccmm_only_pop = pccmm_only * popestimate,
+    onlyvol_pop = onlyvol * popestimate,
+    mandhmo_pop = mandhmo * popestimate,
+    mixedmand_pop = mixedmand * popestimate
   )
+
 
 # Constructing percentages with MMC/HMO mandate Table 1
 mp_agg <- mandate_pop %>%
@@ -936,7 +1062,7 @@ mp_agg_tbl2 <- mandate_pop %>%
   group_by(stname, year) %>%
   summarise(
     # Total population
-    pop = sum(popestimate2000, na.rm = TRUE),
+    pop = sum(popestimate, na.rm = TRUE),
     
     # Population by different mandate types
     pop_with_pccm_only = sum(pccmm_only_pop, na.rm = TRUE),
@@ -958,21 +1084,7 @@ mp_agg_tbl2 <- mandate_pop %>%
          pct_with_pccm_only,
          pct_with_mixedmand)
 
-saveRDS(mp_agg_tbl2, file = paste0(path, "/Temp/mandate_pcts_by_st_yr.rds"))
-
-### ---------------------- Expanding Theoretical Mandate ------------------- ###
-# Read in county level mandate level
-mandate <- read_dta(paste0(path, file.path("/Input_Data",
-                                           "Medicaid_managedcare_enrollment_report",
-                                           "external",
-                                           "uimmc.dta")))
-
-
-# Read in county-level Census population data for 2000-2010
-census_2000 <- read_csv(paste0(path, file.path("/Input_Data",
-                                               "Medicaid_managedcare_enrollment_report",
-                                               "census",
-                                               "co-est00int-tot.csv")))
+saveRDS(mp_agg_tbl2, file = paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))
 
 
 ### ---------------------- Adjust spending for inflation ------------------- ###

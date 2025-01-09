@@ -208,16 +208,26 @@ for (st in unique_states) {
              label = paste0("Jump Magnitude: ", 
                             scales::percent(max(state_data$max_jump))),
              size = 4,
-             hjust = 0) +
+             hjust = 0,
+             color = pubblue) +
     annotate("text",
              x = state_data$treatment_year + 1,
              y = y_max - 0.15,
              label = paste0("Prop. Jump in Mandate (Treat Yr): ", 
                             scales::percent(state_data$pct_with_mandate_change)),
              size = 4,
-             hjust = 0) +
+             hjust = 0,
+             color = pubred) +
     scale_color_manual(values = c("Share of MMC Enrollment" = pubblue,
                                   "Share of Counties with MMC Mandate" = pubred)) +
+    theme(plot.title = element_text(size = 26),
+          plot.subtitle = element_text(size = 24),
+          axis.title.x = element_text(size = 22), 
+          axis.title.y = element_text(size = 22),
+          axis.text.x = element_text(size = 20),
+          axis.text.y = element_text(size = 20),
+          legend.title = element_text(size = 24),
+          legend.text = element_text(size = 22)) +
     theme_pub()
   
   output_path <- file.path(output_dir, paste0(st, ".png"))
@@ -248,8 +258,21 @@ ggplot(res, (aes(x = pct_with_mandate_change))) +
     ) +
   theme_pub()
 
-### --------- Expanding and Plotting Theoretical Mandate Expansions -------- ###
+### --------- Re-replicating Table 6 with Okay-State Subset -------- ###
+okay_states <- c("Alabama", "Alaska", "Colorado", "Connecticut", "Delaware",
+                 "Hawaii", "Indiana", "Iowa", "Louisiana", "Maryland", 
+                 "Massachusetts", "Michigan", "Missouri", "Nebraska", "Nevada",
+                 "New Hampshire", "New Jersey", "North Dakota", "Oregon",
+                 "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+                 "Tennessee", "Washington")
 
+okay_states_data <- new_merged_data_temp %>%
+  filter(state %in% okay_states) %>%
+  filter(year %in% 1991:2003)
+
+new_spec1 <- lm(pct_in_managed_care ~ pct_with_mandate + factor(state) + 
+              factor(year), data = okay_states_data)
+summary(new_spec1)
 
 ### ----------------- Linear Model to Define Treatment Year ---------------- ###
 
