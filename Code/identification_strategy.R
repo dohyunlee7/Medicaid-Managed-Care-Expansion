@@ -10,16 +10,16 @@ path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
 
 new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel3.rds"))
 
-# Get the 663 observations
+mandates <- readRDS(paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))
+
+# Reformat state names to title case
+mandates$stname <- str_to_title(mandates$stname)
+new_merged_data$state <- str_to_title(new_merged_data$state)
+
+# Get the 663 observations (for just specification replication)
 new_merged_data <- new_merged_data %>%
   filter(state != "Puerto Rico",
          year <= 2003)
-
-mandates <- readRDS(paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))
-
-# Reformat state names
-mandates$stname <- str_to_title(mandates$stname)
-new_merged_data$state <- str_to_title(new_merged_data$state)
 
 # Merge 1991-2003 panel with mandate data
 main_data <- left_join(new_merged_data, mandates, by = c("state" = "stname",
@@ -250,7 +250,7 @@ for (st in unique_states) {
   p <- ggplot(state_data) +
     geom_line(aes(x = year, 
                   y = pct_in_comp_mco, 
-                  color = "Share of MMC Enrollment"),
+                  color = "Share of Comp. Risk-Based MMC Enrollment"),
               linewidth = 1) +
     geom_line(data = state_data %>% filter(year <= 2001),
               aes(x = year, 
@@ -263,8 +263,8 @@ for (st in unique_states) {
                   color = "Share of Counties with MMC Mandate"),
               linewidth = 1,
               linetype = "dashed") +
-    labs(title = paste0("Share of Managed Care Enrollment: ", st),
-         subtitle = "1991-2022",
+    labs(title = paste0("Share of Comprehensive Risk-Based Managed Care Enrollment: ", st),
+         subtitle = "Mandate: 1991-2001, CRB MC: 1995-2022",
          x = "Year",
          y = "Share of Enrollees") +
     scale_x_continuous(breaks = seq(1991, 2022, by = 2),
@@ -292,7 +292,7 @@ for (st in unique_states) {
              size = 4,
              hjust = 0,
              color = pubred) +
-    scale_color_manual(values = c("Share of MMC Enrollment" = pubblue,
+    scale_color_manual(values = c("Share of Comp. Risk-Based MMC Enrollment" = pubblue,
                                   "Share of Counties with MMC Mandate" = pubred)) +
     theme(plot.title = element_text(size = 26),
           plot.subtitle = element_text(size = 24),
@@ -311,18 +311,12 @@ for (st in unique_states) {
 
 
 
-
-
-
-
-
-
 # Plot distribution of jump % of MMC enrollment
 ggplot(jumps, (aes(x = max_jump))) +
   geom_histogram(binwidth = 0.05) +
   labs(
-    title = "Distribution of Jump in Prop. of MMC Enrollment",
-    subtitle = "Treatment year ranges from 1991 - 2022",
+    title = "Distribution of Jump in Prop. of Comprehensive MMC Enrollment",
+    subtitle = "Treatment year ranges from 1995 - 2022",
     x = "Jump in Prop. of MMC Enrollment (%)",
     y = "Frequency"
   ) +
@@ -356,7 +350,7 @@ new_spec1 <- lm(pct_in_managed_care ~ pct_with_mandate + factor(state) +
               factor(year), data = okay_states_data)
 summary(new_spec1)
 
-### ----------------- Linear Model to Define Treatment Year ---------------- ###
+### ------------ Linear Model and R^2 to Define Treatment Year ------------- ###
 
 # If I want to find treatment year for comprehensive risk based managed care
 new_merged_data <- new_merged_data %>%

@@ -1100,7 +1100,7 @@ mp_agg_tbl2 <- mandate_pop %>%
     pct_with_mixedmand = pop_with_mixedmand / pop,
     
     # Percent of population in mandatory MMC county
-    pct_with_mandate = pct_with_pccm_only + pct_with_mandhmo + pct_with_mixedmand
+    pct_with_mandate = pct_with_mandhmo + pct_with_mixedmand
   ) %>%
   select(stname, 
          year, 
@@ -1108,6 +1108,13 @@ mp_agg_tbl2 <- mandate_pop %>%
          pct_with_mandhmo,
          pct_with_pccm_only,
          pct_with_mixedmand)
+
+# Manually changing mandate pcts for Connecticut 2012 onward
+mp_agg_tbl2 <- mp_agg_tbl2 %>%
+  mutate(pct_with_mandate = ifelse(stname == "connecticut" & year >= 2012, 
+                                   0,
+                                   pct_with_mandate))
+
 
 saveRDS(mp_agg_tbl2, file = paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))
 
