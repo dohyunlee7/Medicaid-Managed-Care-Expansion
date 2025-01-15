@@ -8,7 +8,7 @@ library(tidyverse)
 path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
                   "medicaid_privatization_exp")
 
-new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel2.rds"))
+new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel3.rds"))
 
 # Get the 663 observations
 new_merged_data <- new_merged_data %>%
@@ -107,20 +107,20 @@ spec2 <- lm(pct_in_managed_care ~ pct_with_mandate + factor(state) +
 
 ### ----------------------- Jump in Prop. of MMC --------------------------- ###
 new_merged_data <- new_merged_data %>%
-  mutate(pct_in_managed_care = ifelse(pct_in_managed_care > 1, 
+  mutate(pct_in_comp_mco = ifelse(pct_in_comp_mco > 1, 
                                       1, 
-                                      pct_in_managed_care))
+                                      pct_in_comp_mco))
 
 unique_states <- unique(new_merged_data$state)
 output_dir <- file.path(path, "Output", "state_plots")
 
-# Calculate the magnitude of the jump in MMC enrollment
+# Calculate the magnitude of the jump in any MMC enrollment
 jumps <- new_merged_data %>%
   group_by(state) %>%
   arrange(year, .by_group = TRUE) %>%
   mutate(
-    mmc_jump = pct_in_managed_care - lag(pct_in_managed_care),
-    mmc_lag = lag(pct_in_managed_care)
+    mmc_jump = pct_in_comp_mco - lag(pct_in_comp_mco),
+    mmc_lag = lag(pct_in_comp_mco)
   ) %>%
   filter(!is.na(mmc_jump)) %>%
   summarise(
@@ -162,6 +162,7 @@ res <- res %>% select(-treatment_year)
 new_merged_data_temp <- new_merged_data_temp %>%
   left_join(res, by = c("state" = "stname"))
 
+# Any MCO Enrollment
 for (st in unique_states) {
   state_data <- new_merged_data_temp %>%
     filter(state == st) %>%
@@ -233,6 +234,87 @@ for (st in unique_states) {
   output_path <- file.path(output_dir, paste0(st, ".png"))
   ggsave(output_path, plot = p, width = 16, height = 12, dpi = 300)
 }
+
+# Comprehensive risk-based managed care
+for (st in unique_states) {
+  state_data <- new_merged_data_temp %>%
+    filter(state == st) %>%
+    mutate(pct_in_comp_mco = as.numeric(pct_in_comp_mco),
+           pct_with_mandate = as.numeric(pct_with_mandate))
+  
+  y_max <- state_data %>%
+    filter(year >= (treatment_year - 1) & year <= (treatment_year + 1)) %>%
+    summarize(max_y = max(pct_in_comp_mco)) %>%
+    pull(max_y)
+  
+  p <- ggplot(state_data) +
+    geom_line(aes(x = year, 
+                  y = pct_in_comp_mco, 
+                  color = "Share of MMC Enrollment"),
+              linewidth = 1) +
+    geom_line(data = state_data %>% filter(year <= 2001),
+              aes(x = year, 
+                  y = pct_with_mandate, 
+                  color = "Share of Counties with MMC Mandate"),
+              linewidth = 1) +
+    geom_line(data = state_data %>% filter(year >= 2001),
+              aes(x = year, 
+                  y = pct_with_mandate, 
+                  color = "Share of Counties with MMC Mandate"),
+              linewidth = 1,
+              linetype = "dashed") +
+    labs(title = paste0("Share of Managed Care Enrollment: ", st),
+         subtitle = "1991-2022",
+         x = "Year",
+         y = "Share of Enrollees") +
+    scale_x_continuous(breaks = seq(1991, 2022, by = 2),
+                       limits = c(1991, 2022)) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.20),
+                       limits = c(0, 1),
+                       labels = scales::percent) +
+    geom_vline(data = state_data %>% filter(year == treatment_year),
+               aes(xintercept = treatment_year, color = pubblue),
+               linetype = "dashed", 
+               linewidth = 1) +
+    annotate("text",
+             x = state_data$treatment_year + 1,
+             y = y_max - 0.10,
+             label = paste0("Jump Magnitude: ", 
+                            scales::percent(max(state_data$max_jump))),
+             size = 4,
+             hjust = 0,
+             color = pubblue) +
+    annotate("text",
+             x = state_data$treatment_year + 1,
+             y = y_max - 0.15,
+             label = paste0("Prop. Jump in Mandate (Treat Yr): ", 
+                            scales::percent(state_data$pct_with_mandate_change)),
+             size = 4,
+             hjust = 0,
+             color = pubred) +
+    scale_color_manual(values = c("Share of MMC Enrollment" = pubblue,
+                                  "Share of Counties with MMC Mandate" = pubred)) +
+    theme(plot.title = element_text(size = 26),
+          plot.subtitle = element_text(size = 24),
+          axis.title.x = element_text(size = 22), 
+          axis.title.y = element_text(size = 22),
+          axis.text.x = element_text(size = 20),
+          axis.text.y = element_text(size = 20),
+          legend.title = element_text(size = 24),
+          legend.text = element_text(size = 22)) +
+    theme_pub()
+  
+  output_path <- file.path(output_dir, paste0(st, ".png"))
+  ggsave(output_path, plot = p, width = 16, height = 12, dpi = 300)
+}
+
+
+
+
+
+
+
+
 
 
 # Plot distribution of jump % of MMC enrollment

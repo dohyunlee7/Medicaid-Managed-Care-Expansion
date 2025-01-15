@@ -102,7 +102,7 @@ data_comb[data_comb == "N/A"] <- NA
 ### --------------- Process raw comp. MCO data from 2016 - 2021 ------------ ###
 
 # Define years
-years <- 2016:2021
+years <- 2016:2022
 
 # Get all file names with the years attached
 file_names <- paste0("raw_data_", years, ".csv")

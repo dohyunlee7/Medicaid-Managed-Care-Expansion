@@ -115,6 +115,7 @@ process_mmc_entity_data <- function(pdf_text,
 library(dplyr)
 library(pdftools)
 library(readxl)
+library(datasets)
 library(tidyverse)
 
 # Change path depending on file
@@ -518,7 +519,126 @@ mmc_entity_1999_df <- mmc_entity_1999_df %>%
 # Save data for 1999
 write_csv(mmc_entity_1999_df, paste0(save_path, "/data_1999.csv"))
 
+### -------------------------- 1998 MMC Enrollment ------------------------- ###
 
+# Extend state.abb and state.name with DC name
+state.abb <- c(state.abb, "DC")
+state.name <- c(state.name, "District of Columbia")
+
+# Get table by program type 
+tbl_1998 <- read_excel("1998_tables.xlsx")
+
+# Filter for risk-based managed care types (comprehensive and medicaid-only)
+tbl_1998_filtered <- tbl_1998 %>%
+  filter(plan_type %in% c("Comp-MCO", "Mcaid-MCO")) %>%
+  filter(payment_arrangements == "FUL") %>%
+  mutate(number_of_enrollees = gsub(",", "", number_of_enrollees),
+         number_of_enrollees = as.numeric(number_of_enrollees),
+         number_of_enrollees = ifelse(is.na(number_of_enrollees), 0, number_of_enrollees))
+
+# Get sum of comp. risk-based enrollees per state
+crb_1998 <- tbl_1998_filtered %>%
+  group_by(state) %>%
+  summarise(crb_mc_enrollees = sum(number_of_enrollees)) %>%
+  mutate(year = 1998) %>%
+  filter(state != "PR")
+  
+# Match state abbreviations to state names 
+crb_1998$state <- state.name[match(crb_1998$state, state.abb)]
+
+# Assign the rest of states with 0s
+crb_1998 <- crb_1998 %>%
+  complete(state = state.name, year, fill = list(crb_mc_enrollees = 0))
+
+# Save data for 1998
+write_csv(crb_1998, paste0(save_path, "/data_1998.csv"))
+
+### -------------------------- 1997 MMC Enrollment ------------------------- ###
+
+# Get table by program type 
+tbl_1997 <- read_excel("1997_tables.xlsx")
+
+tbl_1997_filtered <- tbl_1997 %>%
+  filter(payment_arrangements == "FUL") %>%
+  filter(plan_type %in% c("HMO/SPD", "HMO/FQ")) %>%
+  mutate(number_of_enrollees = gsub(",", "", number_of_enrollees),
+         number_of_enrollees = as.numeric(number_of_enrollees),
+         number_of_enrollees = ifelse(is.na(number_of_enrollees), 0, number_of_enrollees))
+
+# Get sum of comp. risk-based enrollees per state
+crb_1997 <- tbl_1997_filtered %>%
+  group_by(state) %>%
+  summarise(crb_mc_enrollees = sum(number_of_enrollees)) %>%
+  mutate(year = 1997) %>%
+  filter(state != "PR")
+
+# Match state abbreviations to state names 
+crb_1997$state <- state.name[match(crb_1997$state, state.abb)]
+
+# Assign the rest of states with 0s
+crb_1997 <- crb_1997 %>%
+  complete(state = state.name, year, fill = list(crb_mc_enrollees = 0))
+
+# Save data for 1997
+write_csv(crb_1997, paste0(save_path, "/data_1997.csv"))
+
+### -------------------------- 1996 MMC Enrollment ------------------------- ###
+
+# Get table by program type 
+tbl_1996 <- read_excel("1996_tables.xlsx")
+
+tbl_1996_filtered <- tbl_1996 %>%
+  filter(payment_arrangement == "FUL") %>%
+  filter(plan_type %in% c("HMO/SPD", "HMO/FQ")) %>%
+  mutate(number_of_enrollees = gsub("[,-]", "", number_of_enrollees),
+         number_of_enrollees = as.numeric(number_of_enrollees),
+         number_of_enrollees = ifelse(is.na(number_of_enrollees), 0, number_of_enrollees))
+
+# Get sum of comp. risk-based enrollees per state
+crb_1996 <- tbl_1996_filtered %>%
+  group_by(state) %>%
+  summarise(crb_mc_enrollees = sum(number_of_enrollees)) %>%
+  mutate(year = 1996) %>%
+  filter(state != "PR")
+
+# Match state abbreviations to state names 
+crb_1996$state <- state.name[match(crb_1996$state, state.abb)]
+
+# Assign the rest of states with 0s
+crb_1996 <- crb_1996 %>%
+  complete(state = state.name, year, fill = list(crb_mc_enrollees = 0))
+
+# Save data for 1996
+write_csv(crb_1996, paste0(save_path, "/data_1996.csv"))
+
+### -------------------------- 1995 MMC Enrollment ------------------------- ###
+
+# Get table by program type 
+tbl_1995 <- read_excel("1995_tables.xlsx")
+
+tbl_1995_filtered <- tbl_1995 %>%
+  filter(payment_arrangement == "FUL") %>%
+  filter(program_type %in% c("HMO/SPD", "HMO/FQ")) %>%
+  mutate(number_of_enrollees = gsub("[,-]", "", number_of_enrollees),
+         number_of_enrollees = as.numeric(number_of_enrollees),
+         number_of_enrollees = ifelse(is.na(number_of_enrollees), 0, number_of_enrollees))
+
+# Get sum of comp. risk-based enrollees per state
+crb_1995 <- tbl_1995_filtered %>%
+  group_by(state) %>%
+  summarise(crb_mc_enrollees = sum(number_of_enrollees)) %>%
+  mutate(year = 1995) %>%
+  filter(state != "PR")
+
+# Match state abbreviations to state names 
+crb_1995$state <- state.name[match(crb_1995$state, state.abb)]
+
+# Assign the rest of states with 0s
+crb_1995 <- crb_1995 %>%
+  complete(state = state.name, year, fill = list(crb_mc_enrollees = 0))
+
+# Save data for 1995
+write_csv(crb_1995, paste0(save_path, "/data_1995.csv"))
 
 
 

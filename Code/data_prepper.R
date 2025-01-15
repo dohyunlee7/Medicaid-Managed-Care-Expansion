@@ -40,10 +40,10 @@ enr_getter <- function(df) {
            pace = num_bene_id_aice)
   
   # df <- df %>%
-    # mutate(imputed_any_mco_enr = rowSums(df[, c("num_bene_id_cmcp",
-    #                                             "num_bene_id_ltcm",
-    #                                             "num_bene_id_pccm")], 
-    #                                      na.rm = TRUE))
+  # mutate(imputed_any_mco_enr = rowSums(df[, c("num_bene_id_cmcp",
+  #                                             "num_bene_id_ltcm",
+  #                                             "num_bene_id_pccm")], 
+  #                                      na.rm = TRUE))
   
   # Rename variable for total Medicaid enrollment
   # Select relevant columns
@@ -134,14 +134,14 @@ coalesce_join <- function(main_data,
       main_data <- main_data %>%
         ungroup() %>%
         mutate(!!col := coalesce(.[[col_x]], .[[col_y]]))
-        
+      
     }
   }
   
   # Drop both copies of the variable value
   main_data <- main_data %>%
     select(-matches("\\.x$"), -matches("\\.y$"))
-    
+  
   # Reorder columns if a specific order is provided
   if (!is.null(reorder_cols)) {
     main_data <- main_data %>%
@@ -540,10 +540,10 @@ saveRDS(merged_data, file = paste0(path, "/Temp/merged_panel.rds"))
 #                                        "enrollment_2006_v2.csv")))
 
 df_07 <- read_csv(paste0(path,
-                             file.path("/Input_Data",
-                                       "Medicaid_managedcare_enrollment_report",
-                                       "claims",
-                                       "enrollment_2007_v2.csv")))
+                         file.path("/Input_Data",
+                                   "Medicaid_managedcare_enrollment_report",
+                                   "claims",
+                                   "enrollment_2007_v2.csv")))
 
 # Lowercase variable names
 #names(df_06) <- tolower(names(df_06))
@@ -660,15 +660,15 @@ new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
 
 # Read FY Medicaid enrollment (potentially enrolled on June 30 of year)
 fymcdben <- read_dta(paste0(path, file.path("/Input_Data",
-                                              "Medicaid_managedcare_enrollment_report",
-                                              "external",
-                                              "fymcdben.dta")))
+                                            "Medicaid_managedcare_enrollment_report",
+                                            "external",
+                                            "fymcdben.dta")))
 
 # Read Medicaid enrollment (potentially "ever enrolled in the year")
 mcdben <- read_dta(paste0(path, file.path("/Input_Data",
-                                              "Medicaid_managedcare_enrollment_report",
-                                              "external",
-                                              "mcdben.dta")))
+                                          "Medicaid_managedcare_enrollment_report",
+                                          "external",
+                                          "mcdben.dta")))
 
 enrollment_data <- left_join(fymcdben, mcdben, by = c("state", "year"))
 
@@ -785,6 +785,31 @@ new_merged_data2 <- new_merged_data2 %>%
          pct_in_comp_mco = crb_mc_enrollees / total_med_enr)
 
 saveRDS(new_merged_data2, file = paste0(path, "/Temp/new_merged_panel2.rds"))
+
+### ---------- Append in comprehensive MCO enrollment for 1995-1998 -------- ###
+
+# Read in data for 1995-1998
+file_names <- paste0(dir_path, "/data_", 1995:1998, ".csv")
+
+data_list <- lapply(file_names, read_csv)
+
+names(data_list) <- 1995:1998
+
+crb_95_98 <- do.call(rbind, data_list)
+
+# Coalesce crb_mc_enrollees and update enrollment
+new_merged_data3 <- new_merged_data2 %>%
+  left_join(crb_95_98, by = c("state", "year")) %>%
+  mutate(crb_mc_enrollees = ifelse(!is.na(crb_mc_enrollees.y), 
+                                   crb_mc_enrollees.y, 
+                                   crb_mc_enrollees.x)) %>%
+  select(-crb_mc_enrollees.x, -crb_mc_enrollees.y)
+
+new_merged_data3 <- new_merged_data3 %>%
+  mutate(pct_in_comp_mco = crb_mc_enrollees / total_med_enr)
+
+saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
+
 
 ### ---------- Integrate mandate data and county-level Census data --------- ###
 
@@ -1111,7 +1136,7 @@ cpi_data <- cpi_data %>%
   mutate(year = as.numeric(format(date, "%Y"))) %>%
   rename(cpi = value) %>%
   select(year, cpi)
-  
+
 
 # Join annual CPI to panel
 new_merged_data_adj <- left_join(new_merged_data2, cpi_data, by = "year")
@@ -1125,10 +1150,6 @@ new_merged_data_adj <- new_merged_data_adj %>%
   mutate(across(29:457, ~. * adj_factor))
 
 saveRDS(new_merged_data_adj, file = paste0(path, "/Temp/new_merged_panel_inflation_adj.rds"))
-
-
-
-
 
 
 
