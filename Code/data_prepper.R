@@ -810,6 +810,22 @@ new_merged_data3 <- new_merged_data3 %>%
 
 saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
 
+### ------------------- Append in remaining PCCM data  --------------------- ###
+new_merged_data3 <- readRDS(paste0(path, "/Temp/new_merged_panel3.rds"))
+
+new_merged_data3 <- coalesce_join(
+  main_data = new_merged_data3,
+  join_data = mc91_05,
+  by_cols = c("state", "year"),
+  coalesce_cols = c("pccm"),
+  reorder_cols = reorder_cols
+)
+
+new_merged_data3 <- new_merged_data3 %>%
+  mutate(pccm = replace_na(pccm, 0)) %>%
+  mutate(pct_in_pccm = pccm / total_med_enr)
+
+saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
 
 ### ---------- Integrate mandate data and county-level Census data --------- ###
 
@@ -993,20 +1009,6 @@ mandate_pop <- mandate_pop %>%
 mandate_pop$mmc <- mandate_pop$nommc - 1
 mandate_pop$mmc <- mandate_pop$mmc * -1
 
-# mandate_pop <- mandate_pop %>%
-#   mutate(
-#     hmom_pop = hmom * popestimate2000,
-#     hmov_pop = hmov * popestimate2000,
-#     pccmm_pop = pccmm * popestimate2000,
-#     pccmv_pop = pccmv * popestimate2000,
-#     mmc_pop = mmc * popestimate2000,
-#     hmo = ifelse(hmom == 1 | hmov == 1, 1, 0),
-#     hmopop = hmo * popestimate2000,
-#     pccmm_only_pop = pccmm_only * popestimate2000,
-#     onlyvol_pop = onlyvol * popestimate2000,
-#     mandhmo_pop = mandhmo * popestimate2000,
-#     mixedmand_pop = mixedmand * popestimate2000
-#   )
 
 mandate_pop <- mandate_pop %>%
   mutate(
@@ -1099,21 +1101,25 @@ mp_agg_tbl2 <- mandate_pop %>%
     pct_with_mandhmo = pop_with_mandhmo / pop,
     pct_with_mixedmand = pop_with_mixedmand / pop,
     
-    # Percent of population in mandatory MMC county
-    pct_with_mandate = pct_with_mandhmo + pct_with_mixedmand
+    # Percent of population in mandatory MMC county (D&H definition)
+    pct_with_mandate = pct_with_mandhmo + pct_with_mixedmand + pct_with_pccm_only,
+    
+    # Percent of population in mandatory MMC county (Np\o PCCM)
+    pct_with_crb_mandate = pct_with_mandhmo + pct_with_mixedmand
   ) %>%
   select(stname, 
          year, 
          pct_with_mandate, 
          pct_with_mandhmo,
          pct_with_pccm_only,
-         pct_with_mixedmand)
+         pct_with_mixedmand,
+         pct_with_crb_mandate)
 
 # Manually changing mandate pcts for Connecticut 2012 onward
 mp_agg_tbl2 <- mp_agg_tbl2 %>%
-  mutate(pct_with_mandate = ifelse(stname == "connecticut" & year >= 2012, 
+  mutate(pct_with_crb_mandate = ifelse(stname == "connecticut" & year >= 2012, 
                                    0,
-                                   pct_with_mandate))
+                                   pct_with_crb_mandate))
 
 
 saveRDS(mp_agg_tbl2, file = paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))
