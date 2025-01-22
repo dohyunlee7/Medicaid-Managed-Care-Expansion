@@ -65,14 +65,8 @@ ggsave(paste0(path, "/Output/dh_fig1.png"),
        dpi = 300)
 
 
-### RELATIONSHIP BETWEEN MMC ENROLLMENT AND MEDICAID SPENDING ###
-model1 <- lm(log(`total medicaid (mt + at)`) ~ factor(state) + factor(year) +
-               log(total_med_enr) + pct_with_mandate + factor(state) * year,
-             data = main_data)
-
-summary(model1)
-
 ### EFFECT OF STATE AND LOCAL MANDATES ON MMC ENROLLMENT ###
+### Replication of Tables and Models from D&H ###
 
 # Column 0 (mu, sigma)
 column0 <- main_data %>%
@@ -99,27 +93,30 @@ column0 <- main_data %>%
   )
 
 
-# Run model for specification 1:
-# Percent in Comp Full Risk MC ~ % with mandate + state and year fixed effects
-# (Excludes PCCM)
-spec1 <- lm(pct_in_managed_care ~ pct_with_mandate + factor(state) + 
+### Table 6: The Impact of State and Local MMC Mandates on MMC Enrollment
+# Specification 1: 
+tbl6_spec1 <- lm(pct_in_managed_care ~ pct_with_mandate + factor(state) + 
               factor(year), data = main_data)
-summary(spec1)
+summary(tbl6_spec1)
 
 # Refined definition of managed care (no PCCM)
-spec1_v2 <- lm(pct_in_comp_mco ~ pct_with_crb_mandate + factor(state) + 
+tbl6_spec1_crb <- lm(pct_in_comp_mco ~ pct_with_crb_mandate + factor(state) + 
                  factor(year), data = main_data)
-summary(spec1_v2)
+summary(tbl6_spec1_crb)
 
 
 # Just for PCCM
-spec1_v3 <- lm(pct_in_pccm ~ pct_with_pccm_only + factor(state) + 
+tbl6_spec1_pccm <- lm(pct_in_pccm ~ pct_with_pccm_only + factor(state) + 
                  factor(year), data = main_data)
-summary(spec1_v3)
+summary(tbl6_spec1_pccm)
 
-# Mean = 0.487
-# SD = 0.0257
 
+### Table 8: Impact of MMC Mandates and Enrollment on State Medicaid Expenditures
+tbl8_spec1 <- lm(log(`total medicaid (mt + at)`) ~ pct_with_mandate + 
+                   pct_in_managed_care + log(total_med_enr) + 
+                   factor(state) + factor(year),
+                 data = main_data)
+summary(tbl8_spec1)
 
 ### ----------------------- Jump in Prop. of MMC --------------------------- ###
 
