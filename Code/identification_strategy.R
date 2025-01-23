@@ -112,18 +112,84 @@ summary(tbl6_spec1_pccm)
 
 
 ### Table 8: Impact of MMC Mandates and Enrollment on State Medicaid Expenditures
-tbl8_spec1 <- lm(log(`total medicaid (mt + at)`) ~ pct_with_mandate + 
-                   pct_in_managed_care + log(total_med_enr) + 
-                   factor(state) + factor(year),
+
+library(fredr)
+
+# Get API Key from Fed. Reserve
+fredr_set_key("8664fb88934dc0a2a037b8c6b153e4e5")
+
+# Fetch annual CPI data for 'CPIAUCSL' 
+# (Consumer Price Index for All Urban Consumers, All Items)
+cpi_data <- fredr(
+  series_id = "CPIAUCSL",
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2003-12-31"),
+  frequency = "a"
+)
+
+# Calculate year-over-year percentage change (inflation rate) in CPI
+cpi_data <- cpi_data %>%
+  arrange(date) %>%
+  mutate(year = as.numeric(format(date, "%Y"))) %>%
+  rename(cpi = value) %>%
+  select(year, cpi)
+
+
+# Join annual CPI to panel
+main_data_new <- left_join(main_data, cpi_data, by = "year")
+
+cpi_2003 <- cpi_data[cpi_data$year == 2003, ]$cpi
+
+main_data_new <- main_data_new %>%
+  mutate(adj_factor = cpi_2003 / cpi)
+
+main_data_new <- main_data_new %>%
+  mutate(across(29:457, ~. * adj_factor))
+
+# Sp. 1 RF
+tbl8_spec1 <- lm(log(`total medicaid (mt + at)`) ~ 
+                   pct_with_crb_mandate +
+                   log(total_med_enr) + 
+                   factor(state) + 
+                   factor(year),
                  data = main_data)
 summary(tbl8_spec1)
+
+# Sp. 2 IV
+tbl8_spec2 <- lm(log(`total medicaid (mt + at)`) ~ 
+                   pct_in_comp_mco + 
+                   log(total_med_enr) + 
+                   factor(state) + 
+                   factor(year),
+                 data = main_data)
+summary(tbl8_spec2)
+
+# Sp. 3 RF
+tbl8_spec3 <- lm(log(`total medicaid (mt + at)`) ~ 
+                   pct_with_crb_mandate + 
+                   pct_with_mandhmo +
+                   log(total_med_enr) + 
+                   factor(state) + 
+                   factor(year),
+                 data = main_data)
+summary(tbl8_spec3)
+
+# Sp. 4 IV
+tbl8_spec4 <- lm(log(`total medicaid (mt + at)`) ~ 
+                   pct_in_managed_care + 
+                   pct_with_mandhmo +
+                   log(total_med_enr) + 
+                   factor(state) + 
+                   factor(year),
+                 data = main_data)
+summary(tbl8_spec4)
 
 ### ----------------------- Jump in Prop. of MMC --------------------------- ###
 
 new_merged_data <- new_merged_data %>%
-  mutate(pct_in_pccm = ifelse(pct_in_pccm > 1, 
-                                      1, 
-                                      pct_in_pccm)) # *Change metric
+  mutate(pct_in_comp_mco = ifelse(pct_in_comp_mco > 1, 
+                              1, 
+                              pct_in_comp_mco)) # *Change metric
 
 unique_states <- unique(new_merged_data$state)
 output_dir <- file.path(path, "Output", "state_plots")
@@ -133,8 +199,8 @@ jumps <- new_merged_data %>%
   group_by(state) %>%
   arrange(year, .by_group = TRUE) %>%
   mutate(
-    mmc_jump = pct_in_pccm - lag(pct_in_pccm),
-    mmc_lag = lag(pct_in_pccm)
+    mmc_jump = pct_in_comp_mco - lag(pct_in_comp_mco),
+    mmc_lag = lag(pct_in_comp_mco)
   ) %>%
   filter(!is.na(mmc_jump)) %>%
   summarise(
@@ -167,8 +233,8 @@ res <- mandates2 %>%
   summarise(treatment_year = unique(treatment_year),
             pct_with_mandate_change = pct_with_mandate[year == treatment_year] - 
               pct_with_mandate[year == (treatment_year - 1)],
-            pct_with_pccm_change = pct_with_pccm_only[year == treatment_year] - 
-              pct_with_pccm_only[year == (treatment_year - 1)]) %>%
+            pct_with_crb_change = pct_with_crb_mandate[year == treatment_year] - 
+              pct_with_crb_mandate[year == (treatment_year - 1)]) %>%
   ungroup()
 
 # Remove treatment year to avoid repeat column
@@ -182,33 +248,33 @@ new_merged_data_temp <- new_merged_data_temp %>%
 for (st in unique_states) {
   state_data <- new_merged_data_temp %>%
     filter(state == st) %>%
-    mutate(pct_in_pccm = as.numeric(pct_in_pccm),
+    mutate(pct_in_comp_mco = as.numeric(pct_in_comp_mco),
            pct_with_mandate = as.numeric(pct_with_mandate),
-           pct_with_pccm_only = as.numeric(pct_with_pccm_only))
+           pct_with_crb_mandate = as.numeric(pct_with_crb_mandate))
   
   y_max <- state_data %>%
     filter(year >= (treatment_year - 1) & year <= (treatment_year + 1)) %>%
-    summarize(max_y = max(pct_in_pccm)) %>%
+    summarize(max_y = max(pct_in_comp_mco)) %>%
     pull(max_y)
   
   p <- ggplot(state_data) +
     geom_line(aes(x = year, 
-                  y = pct_in_pccm, 
-                  color = "Share of PCCM Enrollment"),
+                  y = pct_in_comp_mco, 
+                  color = "Share of Comp. Risk-Based Enrollment"),
               linewidth = 1) +
     geom_line(data = state_data %>% filter(year <= 2001),
               aes(x = year, 
-                  y = pct_with_pccm_only, 
-                  color = "Share of Counties with PCCM Mandate"),
+                  y = pct_with_crb_mandate, 
+                  color = "Share of Counties with MMC Mandate"),
               linewidth = 1) +
     geom_line(data = state_data %>% filter(year >= 2001),
               aes(x = year, 
-                  y = pct_with_pccm_only, 
-                  color = "Share of Counties with PCCM Mandate"),
+                  y = pct_with_crb_mandate, 
+                  color = "Share of Counties with MMC Mandate"),
               linewidth = 1,
               linetype = "dashed") +
-    labs(title = paste0("Share of PCCM Enrollment: ", st),
-         subtitle = "Mandate: 1991-2001, PCCM: 1991-2022",
+    labs(title = paste0("Share of Comprehensive Risk-Based Managed Care Enrollment: ", st),
+         subtitle = "Mandate: 1991-2001, CRB MC: 1995-2022",
          x = "Year",
          y = "Share of Enrollees") +
     scale_x_continuous(breaks = seq(1991, 2022, by = 2),
@@ -232,12 +298,12 @@ for (st in unique_states) {
              x = state_data$treatment_year + 1,
              y = y_max - 0.15,
              label = paste0("Prop. Jump in Mandate (Treat Yr): ", 
-                            scales::percent(state_data$pct_with_pccm_change)),
+                            scales::percent(state_data$pct_with_crb_mandate)),
              size = 4,
              hjust = 0,
              color = pubred) +
-    scale_color_manual(values = c("Share of PCCM Enrollment" = pubblue,
-                                  "Share of Counties with PCCM Mandate" = pubred)) +
+    scale_color_manual(values = c("Share of Comp. Risk-Based Enrollment" = pubblue,
+                                  "Share of Counties with MMC Mandate" = pubred)) +
     theme(plot.title = element_text(size = 26),
           plot.subtitle = element_text(size = 24),
           axis.title.x = element_text(size = 22), 

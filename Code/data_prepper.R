@@ -788,6 +788,8 @@ saveRDS(new_merged_data2, file = paste0(path, "/Temp/new_merged_panel2.rds"))
 
 ### ---------- Append in comprehensive MCO enrollment for 1995-1998 -------- ###
 
+new_merged_data2 <- readRDS(paste0(path, "/Temp/new_merged_panel2.rds"))
+
 # Read in data for 1995-1998
 file_names <- paste0(dir_path, "/data_", 1995:1998, ".csv")
 
@@ -824,6 +826,59 @@ new_merged_data3 <- coalesce_join(
 new_merged_data3 <- new_merged_data3 %>%
   mutate(pccm = replace_na(pccm, 0)) %>%
   mutate(pct_in_pccm = pccm / total_med_enr)
+
+saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
+
+### ---------------------- Impute missing numbers for DC ------------------- ###
+# There's no data for CRB managed care and total Medicaid enrollment for 2007,
+# 2012, impute using average for enrollment from year 1 year pre and post
+
+# 2007
+new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                   new_merged_data3$year == 2007, ]$total_med_enr <- 
+  (new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                     new_merged_data3$year == 2006, ]$total_med_enr + 
+  new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                     new_merged_data3$year == 2008, ]$total_med_enr) / 2
+
+new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                   new_merged_data3$year == 2007, ]$crb_mc_enrollees <- 
+  (new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                      new_merged_data3$year == 2006, ]$crb_mc_enrollees + 
+     new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                        new_merged_data3$year == 2008, ]$crb_mc_enrollees) / 2
+
+new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                   new_merged_data3$year == 2007, ]$pct_in_comp_mco <- 
+  new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                     new_merged_data3$year == 2007, ]$crb_mc_enrollees /
+  new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                     new_merged_data3$year == 2007, ]$total_med_enr
+
+# 2012
+new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                   new_merged_data3$year == 2012, ]$total_med_enr <- 
+  (new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                      new_merged_data3$year == 2011, ]$total_med_enr + 
+     new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                        new_merged_data3$year == 2013, ]$total_med_enr) / 2
+
+new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                   new_merged_data3$year == 2012, ]$crb_mc_enrollees <- 
+  (new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                      new_merged_data3$year == 2011, ]$crb_mc_enrollees + 
+     new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                        new_merged_data3$year == 2013, ]$crb_mc_enrollees) / 2
+
+new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                   new_merged_data3$year == 2012, ]$pct_in_comp_mco <- 
+  new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                     new_merged_data3$year == 2012, ]$crb_mc_enrollees /
+  new_merged_data3[new_merged_data3$state == "District of Columbia" & 
+                     new_merged_data3$year == 2012, ]$total_med_enr
+
+
+
 
 saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
 
@@ -960,7 +1015,8 @@ census_2020 <- census_2020 %>%
 
 census_data <- left_join(census_data, census_2020, by = c("stname", "ctyname"))
 
-
+census_data <- census_data %>%
+  filter(fipscode != "11")
 
 # Add " county" at the end of string if it doesn't contain "State of" or DC
 mandate$county97 <- ifelse(
@@ -983,7 +1039,7 @@ mandate$county97 <- ifelse(
 # Omit the "State of" tag in front of state names
 mandate$county97 <- gsub("state of ", "", mandate$county97)
 
-# Extend mandates for 2002 and 2003
+# Extend mandates for 2002 - 2022
 new_rows <- mandate %>%
   group_by(stname97, county97) %>%
   filter(year == 2001) %>%
@@ -995,7 +1051,7 @@ new_rows <- mandate %>%
 mandate_pop <- left_join(census_data, 
                          new_rows, 
                          by = c("fipscode" = "fips97", 
-                                "stname" = "stname97",
+                                #"stname" = "stname97",
                                 "ctyname" = "county97"))
 
 # Remove Yellowstone National Park, which likely doesn't have a human population
@@ -1060,6 +1116,9 @@ mandate_pop <- mandate_pop %>%
     mixedmand_pop = mixedmand * popestimate
   )
 
+mandate_pop <- mandate_pop %>%
+  distinct()
+
 
 # Constructing percentages with MMC/HMO mandate Table 1
 mp_agg <- mandate_pop %>%
@@ -1104,7 +1163,7 @@ mp_agg_tbl2 <- mandate_pop %>%
     # Percent of population in mandatory MMC county (D&H definition)
     pct_with_mandate = pct_with_mandhmo + pct_with_mixedmand + pct_with_pccm_only,
     
-    # Percent of population in mandatory MMC county (Np\o PCCM)
+    # Percent of population in mandatory MMC county (No PCCM)
     pct_with_crb_mandate = pct_with_mandhmo + pct_with_mixedmand
   ) %>%
   select(stname, 
@@ -1119,7 +1178,10 @@ mp_agg_tbl2 <- mandate_pop %>%
 mp_agg_tbl2 <- mp_agg_tbl2 %>%
   mutate(pct_with_crb_mandate = ifelse(stname == "connecticut" & year >= 2012, 
                                    0,
-                                   pct_with_crb_mandate))
+                                   pct_with_crb_mandate),
+         pct_with_crb_mandate = ifelse(stname == "oklahoma" & year >= 2004, 
+                                       0,
+                                       pct_with_crb_mandate))
 
 
 saveRDS(mp_agg_tbl2, file = paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))

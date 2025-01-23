@@ -560,7 +560,7 @@ tbl_1997 <- read_excel("1997_tables.xlsx")
 
 tbl_1997_filtered <- tbl_1997 %>%
   filter(payment_arrangements == "FUL") %>%
-  filter(plan_type %in% c("HMO/SPD", "HMO/FQ")) %>%
+  filter(plan_type %in% c("HMO/SPD", "HMO/FQ", "OTHER")) %>%
   mutate(number_of_enrollees = gsub(",", "", number_of_enrollees),
          number_of_enrollees = as.numeric(number_of_enrollees),
          number_of_enrollees = ifelse(is.na(number_of_enrollees), 0, number_of_enrollees))
