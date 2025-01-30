@@ -23,11 +23,13 @@ new_merged_data$state <- str_to_title(new_merged_data$state)
 # Get the 663 observations (for just specification replication)
 new_merged_data <- new_merged_data %>%
   filter(state != "Puerto Rico",
-         year <= 2003)
+         #year <= 2003
+         )
 
 # Merge 1991-2003 panel with mandate data
 main_data <- left_join(new_merged_data, mandates, by = c("state" = "stname",
                                                          "year"))
+
 
 ### Figure 1 ###
 fig1_data <- main_data %>%
@@ -41,7 +43,9 @@ fig1 <- ggplot(fig1_data, aes(x = year, y = pct_with_mandate, color = state)) +
   geom_point() +
   geom_line() +
   scale_x_continuous(breaks = seq(1991, 2003, by = 1)) +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.20),
+                     limits = c(0, 1),
+                     labels = scales::percent) +
   labs(title = "Figure 1",
        subtitle = "Percent of Medicaid recipients with MMC mandate in 5 selected states",
        x = "Year",
@@ -92,6 +96,8 @@ column0 <- main_data %>%
     hmo_sd = sd(pct_with_mandhmo, na.rm = TRUE)
   )
 
+main_data <- main_data %>%
+  mutate(pct_in_managed_care = managed_care_enrollment / total_med_enr)
 
 ### Table 6: The Impact of State and Local MMC Mandates on MMC Enrollment
 # Specification 1: 
@@ -112,39 +118,6 @@ summary(tbl6_spec1_pccm)
 
 
 ### Table 8: Impact of MMC Mandates and Enrollment on State Medicaid Expenditures
-
-library(fredr)
-
-# Get API Key from Fed. Reserve
-fredr_set_key("8664fb88934dc0a2a037b8c6b153e4e5")
-
-# Fetch annual CPI data for 'CPIAUCSL' 
-# (Consumer Price Index for All Urban Consumers, All Items)
-cpi_data <- fredr(
-  series_id = "CPIAUCSL",
-  observation_start = as.Date("1990-01-01"),
-  observation_end = as.Date("2003-12-31"),
-  frequency = "a"
-)
-
-# Calculate year-over-year percentage change (inflation rate) in CPI
-cpi_data <- cpi_data %>%
-  arrange(date) %>%
-  mutate(year = as.numeric(format(date, "%Y"))) %>%
-  rename(cpi = value) %>%
-  select(year, cpi)
-
-
-# Join annual CPI to panel
-main_data_new <- left_join(main_data, cpi_data, by = "year")
-
-cpi_2003 <- cpi_data[cpi_data$year == 2003, ]$cpi
-
-main_data_new <- main_data_new %>%
-  mutate(adj_factor = cpi_2003 / cpi)
-
-main_data_new <- main_data_new %>%
-  mutate(across(29:457, ~. * adj_factor))
 
 # Sp. 1 RF
 tbl8_spec1 <- lm(log(`total medicaid (mt + at)`) ~ 
@@ -174,15 +147,80 @@ tbl8_spec3 <- lm(log(`total medicaid (mt + at)`) ~
                  data = main_data)
 summary(tbl8_spec3)
 
+main_data <- main_data %>%
+  mutate(pct_in_mandhmo = pop_with_mandhmo / total_med_enr)
+
 # Sp. 4 IV
 tbl8_spec4 <- lm(log(`total medicaid (mt + at)`) ~ 
-                   pct_in_managed_care + 
-                   pct_with_mandhmo +
+                   pct_in_comp_mco + 
+                   pct_in_mandhmo +
                    log(total_med_enr) + 
                    factor(state) + 
                    factor(year),
                  data = main_data)
 summary(tbl8_spec4)
+
+### --- Replications with state subset, extension, and extension subset ---- ###
+excluded_states <- c("California", "Colorado", "Kansas", 
+                     "Minnesota", "New York", "Pennsylvania",
+                     "South Carolina", "Utah", "Virginia",
+                     "West Virginia", "Wisonsin", "Mississippi",
+                     "Nebraska")
+
+main_data <- main_data %>%
+  mutate(pct_with_mandate = ifelse(pct_with_mandate > 1, 
+                                      1, 
+                                   pct_with_mandate),
+         pct_with_crb_mandate = ifelse(pct_with_crb_mandate > 1, 
+                                  1, 
+                                  pct_with_crb_mandate),
+         pct_with_pccm_only = ifelse(pct_with_pccm_only > 1, 
+                              1, 
+                              pct_with_pccm_only),
+         pct_in_pccm = replace_na(pct_in_pccm, 0))
+
+main_data_subset <- main_data %>%
+  filter(!state %in% excluded_states)
+
+column0 <- main_data_subset %>%
+  summarise(
+    # Mandatory MMC county (D&H definition)
+    mmc_mean = mean(pct_with_mandate, na.rm = TRUE),
+    mmc_sd = sd(pct_with_mandate, na.rm = TRUE),
+    
+    # Mandatory MMC county (Refined definition excluding PCCM)
+    crb_mc_mean = mean(pct_with_crb_mandate, na.rm = TRUE),
+    crb_mc_sd = sd(pct_with_crb_mandate, na.rm = TRUE),
+    
+    # Mandatory PCCM county
+    pccm_mean = mean(pct_with_pccm_only, na.rm = TRUE),
+    pccm_sd = sd(pct_with_pccm_only, na.rm = TRUE),
+    
+    # Mixed mandatory county
+    mixed_mean = mean(pct_with_mixedmand, na.rm = TRUE),
+    mixed_sd = sd(pct_with_mixedmand, na.rm = TRUE),
+    
+    # Mandatory HMO county
+    hmo_mean = mean(pct_with_mandhmo, na.rm = TRUE),
+    hmo_sd = sd(pct_with_mandhmo, na.rm = TRUE)
+  )
+
+# Specification 1: 
+tbl6_spec1 <- lm(pct_in_managed_care ~ pct_with_mandate + factor(state) + 
+                   factor(year), data = main_data_subset)
+summary(tbl6_spec1)
+
+# Refined definition of managed care (no PCCM)
+tbl6_spec1_crb <- lm(pct_in_comp_mco ~ pct_with_crb_mandate + factor(state) + 
+                       factor(year), data = main_data_subset)
+summary(tbl6_spec1_crb)
+
+
+# Just for PCCM
+tbl6_spec1_pccm <- lm(pct_in_pccm ~ pct_with_pccm_only + factor(state) + 
+                        factor(year), data = main_data_subset)
+summary(tbl6_spec1_pccm)
+
 
 ### ----------------------- Jump in Prop. of MMC --------------------------- ###
 
@@ -190,6 +228,9 @@ new_merged_data <- new_merged_data %>%
   mutate(pct_in_comp_mco = ifelse(pct_in_comp_mco > 1, 
                               1, 
                               pct_in_comp_mco)) # *Change metric
+
+new_merged_data <- new_merged_data %>%
+  filter(year %in% 1995:2022)
 
 unique_states <- unique(new_merged_data$state)
 output_dir <- file.path(path, "Output", "state_plots")
@@ -243,6 +284,11 @@ res <- res %>% select(-treatment_year)
 # Join % change in MMC for treatment year onto panel
 new_merged_data_temp <- new_merged_data_temp %>%
   left_join(res, by = c("state" = "stname"))
+
+new_merged_data_temp <- new_merged_data_temp %>%
+  mutate(pct_with_crb_mandate = ifelse(pct_with_crb_mandate > 1, 
+                                       1, 
+                                       pct_with_crb_mandate))
 
 # Get plots 
 for (st in unique_states) {
@@ -298,7 +344,7 @@ for (st in unique_states) {
              x = state_data$treatment_year + 1,
              y = y_max - 0.15,
              label = paste0("Prop. Jump in Mandate (Treat Yr): ", 
-                            scales::percent(state_data$pct_with_crb_mandate)),
+                            scales::percent(state_data$pct_with_crb_change)),
              size = 4,
              hjust = 0,
              color = pubred) +
@@ -466,11 +512,6 @@ for (st in unique_states) {
 
 
 saveRDS(final_res, file = paste0(path, "/Temp/t_primes.rds"))
-
-
-
-
-
 
 
 

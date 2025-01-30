@@ -887,7 +887,7 @@ saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
 
 library(fredr)
 
-new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
+new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel3.rds"))
 
 # Get API Key from Fed. Reserve
 fredr_set_key("8664fb88934dc0a2a037b8c6b153e4e5")
@@ -910,7 +910,7 @@ cpi_data <- cpi_data %>%
 
 
 # Join annual CPI to panel
-new_merged_data_adj <- left_join(new_merged_data2, cpi_data, by = "year")
+new_merged_data_adj <- left_join(new_merged_data, cpi_data, by = "year")
 
 cpi_2023 <- cpi_data[cpi_data$year == 2023, ]$cpi
 

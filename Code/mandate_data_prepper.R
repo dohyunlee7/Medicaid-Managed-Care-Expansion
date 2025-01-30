@@ -80,6 +80,11 @@ census_1990$ctyname <- gsub("-", " ", census_1990$ctyname)
 census_1990 <- census_1990 %>%
   filter(!is.na(ctyname))
 
+census_1990 <- census_1990 %>%
+  mutate(stname = ifelse(fipscode == "11" | fipscode == "11001",
+                         "district of columbia",
+                         stname))
+
 
 # Lower case variable names
 names(census_2000) <- tolower(names(census_2000))
@@ -206,21 +211,21 @@ new_rows <- mandate %>%
       9999,
       year_expanded_post_dh_mandate_data),
     
-    hmom = ifelse(
-      hmom == 0 & year >= year_expanded_post_dh_mandate_data,
+    mandhmo = ifelse(
+      mandhmo == 0 & year >= year_expanded_post_dh_mandate_data,
       1,
-      hmom),
+      mandhmo),
     
     nommc = ifelse(
-      hmom == 1 & year >= year_expanded_post_dh_mandate_data,
+      mandhmo == 1 & year >= year_expanded_post_dh_mandate_data,
       0,
       nommc
     )
     ) %>%
   mutate(
-    hmom = ifelse(stname97 == "connecticut" & year >= 2012, 0, hmom),
-    hmom = ifelse(stname97 == "oklahoma" & year >= 2004, 0, hmom),
-    hmom = ifelse(stname97 == "vermont" & year >= 2001, 0, hmom))
+    mandhmo = ifelse(stname97 == "connecticut" & year >= 2012, 0, mandhmo),
+    mandhmo = ifelse(stname97 == "oklahoma" & year >= 2004, 0, mandhmo),
+    mandhmo = ifelse(stname97 == "vermont" & year >= 2001, 0, mandhmo))
 
 write_csv(new_rows, paste0(path, "/Temp/new_mandate_data.csv"))
 
@@ -300,7 +305,7 @@ mandate_pop <- mandate_pop %>%
 mp_agg <- mandate_pop %>%
   group_by(year) %>%
   summarise(
-    pop = sum(popestimate2000, na.rm = TRUE),
+    pop = sum(popestimate, na.rm = TRUE),
     pop_with_pccm_only = sum(pccmm_only_pop, na.rm = TRUE),
     pop_with_mandhmo = sum(mandhmo_pop, na.rm = TRUE),
     pop_with_mixedmand = sum(mixedmand_pop, na.rm = TRUE),
@@ -319,7 +324,6 @@ mp_agg <- mp_agg %>%
                                             accuracy = 0.1)) %>%
   select(year, pct_with_mandate, pct_with_mandhmo)
 
-# Constructing percentages with MMC mandate Table 2
 mp_agg_tbl2 <- mandate_pop %>%
   group_by(stname, year) %>%
   summarise(
@@ -344,6 +348,9 @@ mp_agg_tbl2 <- mandate_pop %>%
   ) %>%
   select(stname, 
          year, 
+         pop_with_pccm_only,
+         pop_with_mandhmo,
+         pop_with_mixedmand,
          pct_with_mandate, 
          pct_with_mandhmo,
          pct_with_pccm_only,

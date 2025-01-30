@@ -6,6 +6,7 @@
 library(dplyr)
 library(kableExtra)
 library(haven)
+library(datasets)
 library(tidyverse)
 
 path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
@@ -24,22 +25,37 @@ d1 <- read_dta(paste0(path, "/Input_Data/Medicaid_managedcare_enrollment_report/
 
 mandate <- read_dta(paste0(path, "/Input_Data/Medicaid_managedcare_enrollment_report/external/uimmc.dta"))
 
-data <- readRDS(paste0(path, "/Temp/new_merged_panel.rds"))
+data <- readRDS(paste0(path, "/Temp/new_merged_panel3.rds"))
 
 ### ------------------------------- Table 1 -------------------------------- ###
 
-data_agg <- data %>%
+tbl1 <- main_data %>%
   group_by(year) %>%
   summarise(
     total_med_enr = sum(total_med_enr, na.rm = TRUE),
     total_mmc_enr = sum(managed_care_enrollment, na.rm = TRUE),
+    total_hmo_enr = sum(hmo, na.rm = TRUE),
     pct_in_mmc = scales::percent(total_mmc_enr / total_med_enr, accuracy = 0.1)
   ) %>%
   mutate(total_med_enr_in_millions = round(total_med_enr / 1e6, 1)) %>%
-  select(year, total_med_enr_in_millions, pct_in_mmc) 
+  select(year, 
+         total_med_enr_in_millions, 
+         pct_in_mmc) 
+
+# See % in county with MMC/HMO calculations in mandate_data_prepper.R
 
 
 ### ------------------------------- Table 2 -------------------------------- ###
+
+mandate_data <- readRDS(paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))
+mandate_data <- mandate_data %>%
+  filter(year %in% c(1991, 2003)) %>%
+  select(stname, year, pct_with_mandate) %>%
+  pivot_wider(names_from = year, values_from = pct_with_mandate) 
+
+mandate_data <- mandate_data %>%
+  mutate(across(c(`1991`, `2003`), 
+         ~ scales::percent(., accuracy = 0.1)))
 
 pct_91 <- data %>%
   filter(year == 1991) %>%
@@ -60,10 +76,25 @@ tbl2 <- left_join(pct_91, pct_03, by = "state")
 tbl2 <- left_join(tbl2, pct_09, by = "state")
 
 tbl2 <- tbl2 %>%
-  mutate(across(c(`1991`, `2003`, `2009`), ~ scales::percent(.x, accuracy = 0.1)))
+  mutate(across(c(`1991`, `2003`, `2009`), 
+                ~ scales::percent(pmin(.x, 1), accuracy = 0.1)))
 
 tbl2 <- tbl2 %>%
   mutate(across(everything(), ~ replace_na(.x, "0.0%")))
+
+tbl2$state <- tolower(tbl2$state)
+
+tbl2 <- left_join(tbl2, mandate_data, by = c("state" = "stname"))
+
+tbl2 <- tbl2 %>%
+  rename("1991_enr" = "1991.x",
+         "2003_enr" = "2003.x",
+         "2009_enr" = "2009",
+         "1991_mandate" = "1991.y",
+         "2003_mandate" = "2003.y")
+
+tbl2[tbl2$state == "alaska", ]$`1991_mandate` <- "0.0%"
+tbl2[tbl2$state == "alaska", ]$`2003_mandate` <- "0.0%"
 
 ### ----------------------------- Table 3 ---------------------------------- ###
 tbl3_data <- data %>%
