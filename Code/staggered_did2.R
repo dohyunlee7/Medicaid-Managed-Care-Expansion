@@ -12,6 +12,47 @@ library(did)
 library(lfe)
 library(tidyverse)
 
+### ------------------------------ FUNCTIONS ------------------------------- ###
+
+# For 10 year period DiD
+prep_es_10 <- function(mod){
+  mod_2 <- tibble(
+    estimate = mod$coefficients,
+    term1 = rownames(mod$coefficients),
+    se = mod$se
+  )
+  
+  es <- mod_2 %>% 
+    filter(term1 %in% keepvars) %>% 
+    mutate(t = c(-10:-2, 0:10)) %>% 
+    select(t, estimate, se)
+  es <- rbind(es, c(-1, 0, 0))
+  es <- es %>% mutate(lower = estimate - 1.96 * se,
+                      upper = estimate + 1.96 * se)
+  return(es)
+}
+
+# For 20 year period DiD
+prep_es_20 <- function(mod){
+  
+  mod_2 <- tibble(
+    estimate = mod$coefficients,
+    term1 = rownames(mod$coefficients),
+    se = mod$se
+  )
+  
+  es <- mod_2 %>% 
+    filter(term1 %in% keepvars) %>% 
+    mutate(t = c(-20:-2, 0:20)) %>% 
+    select(t, estimate, se)
+  es <- rbind(es, c(-1, 0, 0))
+  es <- es %>% mutate(lower = estimate - 1.96 * se,
+                      upper = estimate + 1.96 * se)
+  return(es)
+}
+
+### ------------------------------------------------------------------------ ###
+
 
 ### 1. Load data, preprocess ###
 
@@ -28,10 +69,9 @@ jumps$state <- tolower(jumps$state)
 
 # Remove Puerto Rico
 new_merged_data <- new_merged_data %>%
-  filter(state != "Puerto Rico") %>%
-  filter(year %in% 1995:2022)
+  filter(state != "Puerto Rico")
 
-# Merge 1991-2022 panel with mandate data
+# Merge 1991-2022 panel with treatment year data
 main_data <- left_join(new_merged_data, jumps, by = "state")
 
 # Categorize states into treatment groups
@@ -89,43 +129,8 @@ keepvars <- c(paste0("`center_time_-", 20:1, "`"),
               "center_time_0", 
               paste0("center_time_", 1:20))
 
-prep_es_10 <- function(mod){
-  mod_2 <- tibble(
-    estimate = mod$coefficients,
-    term1 = rownames(mod$coefficients),
-    se = mod$se
-  )
-  
-  es <- mod_2 %>% 
-    filter(term1 %in% keepvars) %>% 
-    mutate(t = c(-10:-2, 0:10)) %>% 
-    select(t, estimate, se)
-  es <- rbind(es, c(-1, 0, 0))
-  es <- es %>% mutate(lower = estimate - 1.96 * se,
-                      upper = estimate + 1.96 * se)
-  return(es)
-}
 
-prep_es_20 <- function(mod){
-  
-  mod_2 <- tibble(
-    estimate = mod$coefficients,
-    term1 = rownames(mod$coefficients),
-    se = mod$se
-  )
-  
-  es <- mod_2 %>% 
-    filter(term1 %in% keepvars) %>% 
-    mutate(t = c(-20:-2, 0:20)) %>% 
-    select(t, estimate, se)
-  es <- rbind(es, c(-1, 0, 0))
-  es <- es %>% mutate(lower = estimate - 1.96 * se,
-                      upper = estimate + 1.96 * se)
-  return(es)
-}
-
-
-### DiD - 10 periods
+### DiD - 10 periods ###
 
 mod_d <- lfe::felm(log(all_medicaid_spending_per_cap) ~ 
                      `center_time_-10` + `center_time_-9` + `center_time_-8` + `center_time_-7` +
@@ -178,6 +183,64 @@ p1 <- ggplot(data = es_d, aes(x = t, y = estimate, group = 1))+
   annotate("text", x = 8, y = -0.4, label = comb_est, size = 5)
 print(p1)
 
+### DiD - 20 periods ###
+
+mod_d <- lfe::felm(log(all_medicaid_spending_per_cap) ~ 
+                     `center_time_-20` + `center_time_-19` + `center_time_-18` + `center_time_-17` +
+                     `center_time_-16` + `center_time_-15` + `center_time_-14` + `center_time_-13` +
+                     `center_time_-12` + `center_time_-11` + 
+                     `center_time_-10` + `center_time_-9` + `center_time_-8` + `center_time_-7` +
+                     `center_time_-6` + `center_time_-5` + `center_time_-4` + `center_time_-3` +
+                     `center_time_-2` + `center_time_-1` + 
+                     `center_time_1` + `center_time_2` + `center_time_3` + `center_time_4` +
+                     `center_time_5` + `center_time_6` + `center_time_7` + `center_time_8` + 
+                     `center_time_9` + `center_time_10` + `center_time_11` + `center_time_12` +
+                     `center_time_13` + `center_time_14` + `center_time_15` + `center_time_16` +
+                     `center_time_17` + `center_time_18` + `center_time_19` + `center_time_20`  |
+                     as.factor(state) + as.factor(year),
+                   data = subset(dat, center_time >= -20 & center_time <= 20),
+                   exactDOF = TRUE)
+
+es_d <- prep_es_20(mod_d)
+
+es_d <- es_d %>% 
+  mutate(sig = ifelse((lower > 0 | upper < 0), 1, 0))
+
+mod_d <- lfe::felm(log(all_medicaid_spending_per_cap) ~ treated | as.factor(state) + as.factor(year),
+                   data = subset(dat, center_time >= -20 & center_time <= 20), 
+                   exactDOF = TRUE)
+
+summary(mod_d)
+coef <- round(mod_d$coefficients[1],3)
+
+star <- ifelse(mod_d$pval[1] <= 0.01, "***",
+               ifelse(mod_d$pval[1] <= 0.05, "**",
+                      ifelse(mod_d$pval[1] <= 0.1, "*", "")))
+
+se <- round(mod_d$se[1],3)
+comb_est <- paste("TWFE: ",coef, star, " (", se, ")", sep = "")
+
+# Event study plot
+p2 <- ggplot(data = es_d, aes(x = t, y = estimate, group = 1))+
+  geom_point(size = 3, color = "gray26")+
+  geom_errorbar(aes(ymin = lower, ymax = upper), 
+                width=.1, 
+                linewidth = 0.8, 
+                color = "gray26") +
+  geom_hline(yintercept = 0, 
+             linetype = "dashed", 
+             linewidth = 1,
+             color = "firebrick4")+
+  scale_x_continuous(breaks = round(seq(-20, 20, by = 1),1),
+                     limits = c(-20.5, 20.5))+
+  scale_y_continuous(breaks = round(seq(-0.5, 0.5, by = 0.1), 1),
+                     limits = c(-0.5, 0.5))+
+  labs(x = "Relative Time", y = "Estimate")+
+  theme(plot.title = element_text(hjust = 0.5, size = 20),
+        legend.position="none")+
+  annotate("text", x = 8, y = -0.4, label = comb_est, size = 5)
+
+print(p2)
 
 
 

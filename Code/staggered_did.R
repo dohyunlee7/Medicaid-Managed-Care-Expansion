@@ -13,7 +13,7 @@ library(tidyverse)
 path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
                   "medicaid_privatization_exp")
 
-new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel3.rds"))
+new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel_inflation_adj.rds"))
 
 # Load enrollment jump data
 jumps <- readRDS(paste0(path, "/Temp/jumps.rds"))
@@ -24,8 +24,7 @@ jumps$state <- tolower(jumps$state)
 
 # Remove Puerto Rico
 new_merged_data <- new_merged_data %>%
-  filter(state != "Puerto Rico") %>%
-  filter(year %in% 1995:2022)
+  filter(state != "Puerto Rico")
 
 # Merge 1991-2022 panel with mandate data
 main_data <- left_join(new_merged_data, jumps, by = "state")

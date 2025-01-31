@@ -829,6 +829,19 @@ new_merged_data3 <- new_merged_data3 %>%
 
 saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
 
+### --- Append in risk-based MC enrollment from mc91_05.dta for 1991-1994 -- ###
+new_merged_data3 <- readRDS(paste0(path, "/Temp/new_merged_panel3.rds"))
+
+new_merged_data3 <- new_merged_data3 %>%
+  mutate(crb_mc_enrollees = ifelse(year %in% 1991:1994,
+                                   hmo,
+                                   crb_mc_enrollees)) %>%
+  mutate(crb_mc_enrollees = ifelse(is.na(crb_mc_enrollees),
+                                   0,
+                                   crb_mc_enrollees))
+
+saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
+
 ### ---------------------- Impute missing numbers for DC ------------------- ###
 # There's no data for CRB managed care and total Medicaid enrollment for 2007,
 # 2012, impute using average for enrollment from year 1 year pre and post
@@ -876,8 +889,6 @@ new_merged_data3[new_merged_data3$state == "District of Columbia" &
                      new_merged_data3$year == 2012, ]$crb_mc_enrollees /
   new_merged_data3[new_merged_data3$state == "District of Columbia" & 
                      new_merged_data3$year == 2012, ]$total_med_enr
-
-
 
 
 saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))

@@ -22,7 +22,7 @@ new_merged_data$state <- str_to_title(new_merged_data$state)
 
 # Get the 663 observations (for just specification replication)
 new_merged_data <- new_merged_data %>%
-  filter(state != "Puerto Rico",
+  filter(state != "Puerto Rico"
          #year <= 2003
          )
 
@@ -229,9 +229,6 @@ new_merged_data <- new_merged_data %>%
                               1, 
                               pct_in_comp_mco)) # *Change metric
 
-new_merged_data <- new_merged_data %>%
-  filter(year %in% 1995:2022)
-
 unique_states <- unique(new_merged_data$state)
 output_dir <- file.path(path, "Output", "state_plots")
 
@@ -251,6 +248,37 @@ jumps <- new_merged_data %>%
                             NA)
   ) %>%
   ungroup()
+
+jumps[jumps$state == "Alabama", ]$treatment_year <- NA
+jumps[jumps$state == "California", ]$treatment_year <- 1997
+jumps[jumps$state == "Connecticut", ]$treatment_year <- 1996
+jumps[jumps$state == "District Of Columbia", ]$treatment_year <- 1995
+jumps[jumps$state == "Indiana", ]$treatment_year <- 1995
+jumps[jumps$state == "Kansas", ]$treatment_year <- 1996
+jumps[jumps$state == "Kentucky", ]$treatment_year <- 1998
+jumps[jumps$state == "Maine", ]$treatment_year <- NA
+jumps[jumps$state == "Massachusetts", ]$treatment_year <- 1998
+jumps[jumps$state == "Michigan", ]$treatment_year <- 1997
+jumps[jumps$state == "Minnesota", ]$treatment_year <- 1998
+jumps[jumps$state == "Mississippi", ]$treatment_year <- 2011
+jumps[jumps$state == "Mississippi", ]$treatment_year <- 2011
+jumps[jumps$state == "Montana", ]$treatment_year <- NA
+jumps[jumps$state == "Nebraska", ]$treatment_year <- 1996
+jumps[jumps$state == "Nevada", ]$treatment_year <- 1997
+jumps[jumps$state == "New Mexico", ]$treatment_year <- 1997
+jumps[jumps$state == "New York", ]$treatment_year <- 1995
+jumps[jumps$state == "Ohio", ]$treatment_year <- 1995
+jumps[jumps$state == "Oklahoma", ]$treatment_year <- 1996
+jumps[jumps$state == "Pennsylvania", ]$treatment_year <- 1997
+jumps[jumps$state == "South Carolina", ]$treatment_year <- 1997
+jumps[jumps$state == "Texas", ]$treatment_year <- 1996
+jumps[jumps$state == "Utah", ]$treatment_year <- 1995
+jumps[jumps$state == "Vermont", ]$treatment_year <- 1997
+jumps[jumps$state == "Virginia", ]$treatment_year <- 1995
+jumps[jumps$state == "Washington", ]$treatment_year <- 1994
+jumps[jumps$state == "West Virginia", ]$treatment_year <- 1997
+
+jumps$state <- str_to_title(jumps$state)
 
 new_merged_data_temp <- new_merged_data %>%
   left_join(jumps, by = "state")
@@ -320,7 +348,7 @@ for (st in unique_states) {
               linewidth = 1,
               linetype = "dashed") +
     labs(title = paste0("Share of Comprehensive Risk-Based Managed Care Enrollment: ", st),
-         subtitle = "Mandate: 1991-2001, CRB MC: 1995-2022",
+         subtitle = "Mandate: 1991-2001, CRB MC: 1991-2022",
          x = "Year",
          y = "Share of Enrollees") +
     scale_x_continuous(breaks = seq(1991, 2022, by = 2),
@@ -370,7 +398,7 @@ ggplot(jumps, (aes(x = max_jump))) +
   geom_histogram(binwidth = 0.05) +
   labs(
     title = "Distribution of Jump in Prop. of Comprehensive MMC Enrollment",
-    subtitle = "Treatment year ranges from 1995 - 2022",
+    subtitle = "Treatment year ranges from 1991 - 2022",
     x = "Jump in Prop. of MMC Enrollment (%)",
     y = "Frequency"
   ) +
