@@ -567,7 +567,7 @@ mc_enr_07 <- mc_enr_07 %>%
 reorder_cols <- c("state", "year", "total_med_enr", "managed_care_enrollment", 
                   "pct_in_managed_care", "comprehensive_mco_enr", "crb_mc_enrollees", 
                   "hio", "commercial_mco", "medicaid_only_mco", "pccm", "pccm_entity", 
-                  "bho", "pihp", "pahp", "bho_pihp_andor_pahp", "mltss", 
+                  "bho", "pihp", "pahp", "php","bho_pihp_andor_pahp", "mltss", 
                   "mltss_only", "dental", "transportation", 
                   "imputed_any_mco_enr")
 
@@ -819,7 +819,7 @@ new_merged_data3 <- coalesce_join(
   main_data = new_merged_data3,
   join_data = mc91_05,
   by_cols = c("state", "year"),
-  coalesce_cols = c("pccm"),
+  coalesce_cols = c("pccm", "php", "hio", "pihp", "pahp", "pace", "other"),
   reorder_cols = reorder_cols
 )
 
@@ -838,7 +838,11 @@ new_merged_data3 <- new_merged_data3 %>%
                                    crb_mc_enrollees)) %>%
   mutate(crb_mc_enrollees = ifelse(is.na(crb_mc_enrollees),
                                    0,
-                                   crb_mc_enrollees))
+                                   crb_mc_enrollees),
+         pct_in_comp_mco = crb_mc_enrollees / total_med_enr,
+         pct_in_comp_mco = ifelse(pct_in_comp_mco > 1,
+                                  1,
+                                  pct_in_comp_mco))
 
 saveRDS(new_merged_data3, file = paste0(path, "/Temp/new_merged_panel3.rds"))
 

@@ -1,0 +1,52 @@
+fmr90-05.dta  -  Net Reported Medicaid and SCHIP Expenditures, FY 2005-1990 (2005-1998 SCHIP)
+
+From CMS-64 Quarterly Expense Reports
+	- FY 2005-1997 available at http://www.cms.hhs.gov/medicaidbudgetexpendsystem/02_cms64.asp
+
+
+FY 2005-1990
+
+- 50 states, 5 territories (Amer. Samoa, Guam, N. Mariana Islands, Puerto Rico, Virgin Islands)
+
+- Total Computable = Federal share + State share
+	- State share unavailable 1996-1990
+
+- m_* ....  Medical Assistance Payments
+	- Beginning in 2004, Prepaid health plan variable (m_mdcdphp) switched to 2 new vars (M-Prepaid Ambulatory Health Plan and M-Prepaid Inpatient Health Plan)
+	- mb_balance = sum of m_*
+	- mc_collections = negative outlays
+	- mt_totnetexp = mb_balance + mc_collections
+
+- a_* ....  State and Local Administration
+	- at_totnetexp = ab_balance + ac_collections
+		- Balance and Collections unavailable 1996-1990
+
+- Total Medicaid = mt_totnetexp + at_totnetexp
+
+
+
+FY 2005-1998
+
+- c_* ....  Medicaid/SCHIP
+	- ct_totnetexp = cb_balance + cc_collections
+
+- s_* ....  SCHIP
+	- st_totnetexp = sb_balance + sc_collections
+
+- Total SCHIP = ct_totnetexp + st_totnetexp
+
+
+
+FY 2005-2004
+
+- t_* ....  20% Expenditure
+	- tt_totnetexp = sum of t_*
+	- tt_totnetexp (Total computable, zero) = tt_totnetexp (Federal Share, positive) + tt_totnetexp (State share, negative)
+
+
+
+2005 - 1997 Enrollment Data
+	- From 1997 - 2005 Medicaid managed care enrollment reports
+		- Enrollment numbers as of June 30th in every year
+		- Available at http://www.cms.hhs.gov/MedicaidDataSourcesGenInfo/04_MdManCrEnrllRep.asp
+

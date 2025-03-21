@@ -300,7 +300,6 @@ mandate_pop <- mandate_pop %>%
 mandate_pop <- mandate_pop %>%
   distinct()
 
-
 # Constructing percentages with MMC/HMO mandate Table 1
 mp_agg <- mandate_pop %>%
   group_by(year) %>%
@@ -334,14 +333,17 @@ mp_agg_tbl2 <- mandate_pop %>%
     pop_with_pccm_only = sum(pccmm_only_pop, na.rm = TRUE),
     pop_with_mandhmo = sum(mandhmo_pop, na.rm = TRUE),
     pop_with_mixedmand = sum(mixedmand_pop, na.rm = TRUE),
+    pop_all = pop_with_pccm_only + pop_with_mandhmo + pop_with_mixedmand,
     
     # Percent of different mandate types
     pct_with_pccm_only = pop_with_pccm_only / pop,
     pct_with_mandhmo = pop_with_mandhmo / pop,
     pct_with_mixedmand = pop_with_mixedmand / pop,
+    pct_with_all = pop_all / pop,
     
     # Percent of population in mandatory MMC county (D&H definition)
-    pct_with_mandate = pct_with_mandhmo + pct_with_mixedmand + pct_with_pccm_only,
+    #pct_with_mandate = pct_with_mandhmo + pct_with_mixedmand + pct_with_pccm_only,
+    pct_with_mandate = pct_with_all,
     
     # Percent of population in mandatory MMC county (No PCCM)
     pct_with_crb_mandate = pct_with_mandhmo + pct_with_mixedmand
@@ -351,6 +353,7 @@ mp_agg_tbl2 <- mandate_pop %>%
          pop_with_pccm_only,
          pop_with_mandhmo,
          pop_with_mixedmand,
+         pop_all,
          pct_with_mandate, 
          pct_with_mandhmo,
          pct_with_pccm_only,

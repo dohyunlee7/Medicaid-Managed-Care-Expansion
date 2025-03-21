@@ -6,7 +6,11 @@ library(dplyr)
 library(haven)
 library(datasets)
 library(readxl)
+library(fredr)
 library(pubtheme)
+library(AER)
+library(stargazer)
+library(xtable)
 library(tidyverse)
 
 path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
@@ -14,22 +18,75 @@ path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
 
 new_merged_data <- readRDS(paste0(path, "/Temp/new_merged_panel3.rds"))
 
+d <- read_dta(paste0(path, "/Input_Data/Medicaid_managedcare_enrollment_report/external/fmr90-05_2.dta")) %>%
+  arrange(year) %>%
+  filter(payshare == 3)
+
+new_merged_data <- new_merged_data %>%
+  mutate(`total schip (ct + st)` = ifelse(is.na(`total schip (ct + st)`),
+                                                0,
+                                                `total schip (ct + st)`),
+         `s-dental services` = ifelse(is.na(`s-dental services`),
+                                          0,
+                                          `s-dental services`),
+         `c-dental services` = ifelse(is.na(`c-dental services`),
+                                      0,
+                                      `c-dental services`)) %>%
+  mutate(allspend = `total medicaid (mt + at)` + `total schip (ct + st)`,
+         allspendnod = allspend - `m-dental services` - `s-dental services` - `c-dental services`,
+         pcapallspendnod = allspendnod / total_med_enr)
+
+controls <- readRDS(paste0(path, "/Temp/demographic_controls.rds"))
+
 mandates <- readRDS(paste0(path, "/Temp/mandate_pcts_by_st_yr_expanded.rds"))
 
 # Reformat state names to title case
 mandates$stname <- str_to_title(mandates$stname)
 new_merged_data$state <- str_to_title(new_merged_data$state)
+controls$statefip <- str_to_title(controls$statefip)
 
 # Get the 663 observations (for just specification replication)
 new_merged_data <- new_merged_data %>%
-  filter(state != "Puerto Rico"
-         #year <= 2003
-         )
+  filter(state != "Puerto Rico",
+         year <= 2003)
 
 # Merge 1991-2003 panel with mandate data
 main_data <- left_join(new_merged_data, mandates, by = c("state" = "stname",
                                                          "year"))
 
+main_data <- left_join(main_data, controls, by = c("state" = "statefip",
+                                                   "year"))
+
+main_data <- main_data %>%
+  mutate(across(everything(), ~replace(., is.na(.), 0)))
+
+cpi_data <- fredr(
+  series_id = "CPIAUCSL",
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2010-12-31"),
+  frequency = "a"
+)
+
+# Calculate year-over-year percentage change (inflation rate) in CPI
+cpi_data <- cpi_data %>%
+  arrange(date) %>%
+  mutate(year = as.numeric(format(date, "%Y"))) %>%
+  rename(cpi = value) %>%
+  select(year, cpi)
+
+
+# Join annual CPI to panel
+data_adj <- left_join(main_data, cpi_data, by = "year")
+
+cpi_2010 <- cpi_data[cpi_data$year == 2010, ]$cpi
+
+data_adj <- data_adj %>%
+  mutate(adj_factor = cpi_2010 / cpi, 3)
+
+data_adj <- data_adj %>%
+  mutate(across(30:458, ~. * adj_factor))
+
+main_data <- data_adj
 
 ### Figure 1 ###
 fig1_data <- main_data %>%
@@ -101,9 +158,40 @@ main_data <- main_data %>%
 
 ### Table 6: The Impact of State and Local MMC Mandates on MMC Enrollment
 # Specification 1: 
-tbl6_spec1 <- lm(pct_in_managed_care ~ pct_with_mandate + factor(state) + 
-              factor(year), data = main_data)
+tbl6_spec1 <- lm(pct_in_managed_care ~ pct_with_mandate + as.factor(state) + 
+              as.factor(year), data = main_data)
 summary(tbl6_spec1)
+
+tbl6_spec2 <- lm(pct_in_managed_care ~ pct_with_mandate + children_prop + 
+                   elderly_prop + disabled_prop + as.factor(state) + 
+                   as.factor(year), data = main_data)
+summary(tbl6_spec2)
+
+tbl6_spec3 <- lm(pct_in_managed_care ~ pct_with_mandate + children_prop + 
+                   elderly_prop + disabled_prop + as.factor(state) + 
+                   as.factor(year) + state * year, data = main_data)
+summary(tbl6_spec3)
+
+tbl6_spec4 <- lm(pct_in_managed_care ~ pct_with_pccm_only + pct_with_mixedmand +
+                   pct_with_mandhmo + children_prop + elderly_prop + 
+                   disabled_prop + as.factor(state) + 
+                   as.factor(year) + state * year, data = main_data)
+summary(tbl6_spec4)
+
+tbl6_spec5 <- lm(pct_in_pccm ~ pct_with_pccm_only + pct_with_mixedmand +
+                   pct_with_mandhmo + children_prop + elderly_prop + 
+                   disabled_prop + as.factor(state) + 
+                   as.factor(year) + state * year, data = main_data)
+summary(tbl6_spec5)
+
+main_data <- main_data %>%
+  mutate(pct_in_hmo = hmo / total_med_enr)
+
+tbl6_spec6 <- lm(pct_in_comp_mco ~ pct_with_pccm_only + pct_with_mixedmand +
+                   pct_with_mandhmo + children_prop + elderly_prop + 
+                   disabled_prop + as.factor(state) + 
+                   as.factor(year) + state * year, data = main_data)
+summary(tbl6_spec6)
 
 # Refined definition of managed care (no PCCM)
 tbl6_spec1_crb <- lm(pct_in_comp_mco ~ pct_with_crb_mandate + factor(state) + 
@@ -119,31 +207,52 @@ summary(tbl6_spec1_pccm)
 
 ### Table 8: Impact of MMC Mandates and Enrollment on State Medicaid Expenditures
 
+# Duggan and Hayford's definition of MMC, n = 663 (original tables)
 # Sp. 1 RF
 tbl8_spec1 <- lm(log(`total medicaid (mt + at)`) ~ 
-                   pct_with_crb_mandate +
-                   log(total_med_enr) + 
+                   pct_with_mandate +
+                   log(total_med_enr) +
+                   children_prop +
+                   elderly_prop +
+                   disabled_prop +
                    factor(state) + 
-                   factor(year),
+                   factor(year) +
+                   state:year,
                  data = main_data)
 summary(tbl8_spec1)
 
 # Sp. 2 IV
-tbl8_spec2 <- lm(log(`total medicaid (mt + at)`) ~ 
-                   pct_in_comp_mco + 
-                   log(total_med_enr) + 
-                   factor(state) + 
-                   factor(year),
-                 data = main_data)
-summary(tbl8_spec2)
+iv_model2 <- ivreg(log(`total medicaid (mt + at)`) ~ 
+                    pct_in_managed_care + 
+                    log(total_med_enr) + 
+                    children_prop +
+                    elderly_prop +
+                    disabled_prop +
+                    factor(state) +
+                    factor(year) + 
+                    state:year |
+                    pct_with_mandate +
+                    log(total_med_enr) + 
+                    children_prop +
+                    elderly_prop +
+                    disabled_prop +
+                    factor(state) + 
+                    factor(year) + 
+                    state:year,
+               data = main_data)
+summary(iv_model2)
 
 # Sp. 3 RF
-tbl8_spec3 <- lm(log(`total medicaid (mt + at)`) ~ 
-                   pct_with_crb_mandate + 
+tbl8_spec3 <- lm(log(allspendnod) ~ 
+                   pct_with_mandate + 
                    pct_with_mandhmo +
                    log(total_med_enr) + 
+                   children_prop +
+                   elderly_prop +
+                   disabled_prop +
                    factor(state) + 
-                   factor(year),
+                   factor(year) +
+                   state:year,
                  data = main_data)
 summary(tbl8_spec3)
 
@@ -151,14 +260,148 @@ main_data <- main_data %>%
   mutate(pct_in_mandhmo = pop_with_mandhmo / total_med_enr)
 
 # Sp. 4 IV
-tbl8_spec4 <- lm(log(`total medicaid (mt + at)`) ~ 
-                   pct_in_comp_mco + 
-                   pct_in_mandhmo +
-                   log(total_med_enr) + 
-                   factor(state) + 
-                   factor(year),
+iv_model4 <- ivreg(log(allspendnod) ~ 
+                     pct_in_managed_care + 
+                     pct_in_mandhmo +
+                     log(total_med_enr) + 
+                     children_prop +
+                     elderly_prop +
+                     disabled_prop +
+                     factor(state) +
+                     factor(year) + 
+                     state:year |
+                     pct_with_mandate +
+                     pct_with_mandhmo +
+                     log(total_med_enr) + 
+                     children_prop +
+                     elderly_prop +
+                     disabled_prop +
+                     factor(state) + 
+                     factor(year) + 
+                     state:year,
+                   data = main_data)
+
+summary(iv_model4)
+
+stargazer(tbl8_spec1, iv_model2, tbl8_spec3, iv_model4,
+          type = "latex",
+          title = "",
+          column.labels = c("RF", "IV", "RF", "IV"),
+          model.numbers = F,
+          dep.var.labels = "Dependent Variable",
+          covariate.labels = c(
+            "% of state pop'n in mand. MMC county",
+            "% of Medicaid recip. in MMC",
+            "% of state pop'n in mand. HMO county",
+            "% of Medicaid recip. in HMOs",
+            "Log(Medicaid Recips)",
+            "% Medicaid (ages 0-14)",
+            "% Medicaid (ages 65+)",
+            "% Medicaid (disabled)"
+          ),
+          omit = c("Constant", "state", "year", "state:year"),
+          align = T,
+          font.size = "small",
+          column.sep.width = "1pt",
+          single.row = T,
+          table.placement = "!htbp",
+          longtable = T)
+
+# Our definition of MMC (Full Risk), n = 663
+# Sp. 1 RF
+tbl8_spec1 <- lm(log(allspendnod) ~ 
+                   pct_with_crb_mandate +
+                   log(total_med_enr) +
+                   children_prop +
+                   elderly_prop +
+                   disabled_prop +
+                   as.factor(state) + 
+                   as.factor(year) +
+                   state:year,
                  data = main_data)
-summary(tbl8_spec4)
+summary(tbl8_spec1)
+
+# Sp. 2 IV
+iv_model2 <- ivreg(log(allspendnod) ~ 
+                     pct_in_comp_mco + 
+                     log(total_med_enr) + 
+                     children_prop +
+                     elderly_prop +
+                     disabled_prop +
+                     as.factor(state) +
+                     as.factor(year) + 
+                     state:year |
+                     pct_with_crb_mandate + 
+                     log(total_med_enr) + 
+                     # children_prop +
+                     # elderly_prop +
+                     # disabled_prop +
+                     as.factor(state) + 
+                     as.factor(year) +
+                     state:year,
+                   data = main_data)
+
+summary(iv_model2)
+
+# Sp. 3 RF
+tbl8_spec3 <- lm(log(allspendnod) ~ 
+                   pct_with_mandate + 
+                   pct_with_mandhmo +
+                   log(total_med_enr) + 
+                   children_prop +
+                   elderly_prop +
+                   disabled_prop +
+                   as.factor(state) + 
+                   as.factor(year) +
+                   state:year,
+                 data = main_data)
+summary(tbl8_spec3)
+
+# Sp. 4 IV
+iv_model4 <- ivreg(log(allspendnod) ~ 
+                     pct_in_comp_mco + 
+                     pct_in_mandhmo +
+                     log(total_med_enr) + 
+                     # children_prop +
+                     # elderly_prop +
+                     # disabled_prop +
+                     factor(state) +
+                     factor(year) + 
+                     state:year |
+                     pct_with_crb_mandate +
+                     pct_with_mandhmo +
+                     log(total_med_enr) + 
+                     # children_prop +
+                     # elderly_prop +
+                     # disabled_prop +
+                     factor(state) + 
+                     factor(year) + 
+                     state:year,
+                   data = main_data)
+
+stargazer(tbl8_spec1, iv_model2, tbl8_spec3, iv_model4,
+          type = "latex",
+          title = "",
+          column.labels = c("RF", "IV", "RF", "IV"),
+          model.numbers = F,
+          dep.var.labels = "Dependent Variable",
+          covariate.labels = c(
+            "% of state pop'n in mand. MMC county",
+            "% of Medicaid recip. in MMC",
+            "% of state pop'n in mand. HMO county",
+            "% of Medicaid recip. in HMOs",
+            "Log(Medicaid Recips)",
+            "% Medicaid (ages 0-14)",
+            "% Medicaid (ages 65+)",
+            "% Medicaid (disabled)"
+          ),
+          omit = c("Constant", "state", "year", "state:year"),
+          align = T,
+          font.size = "small",
+          column.sep.width = "1pt",
+          single.row = T,
+          table.placement = "!htbp",
+          longtable = T)
 
 ### --- Replications with state subset, extension, and extension subset ---- ###
 excluded_states <- c("California", "Colorado", "Kansas", 
@@ -232,51 +475,58 @@ new_merged_data <- new_merged_data %>%
 unique_states <- unique(new_merged_data$state)
 output_dir <- file.path(path, "Output", "state_plots")
 
-# Calculate the magnitude of the jump in any MMC enrollment
+
+# Calculate the where there is a first instance of comp. mco enrollment > 10%
 jumps <- new_merged_data %>%
   group_by(state) %>%
-  arrange(year, .by_group = TRUE) %>%
-  mutate(
-    mmc_jump = pct_in_comp_mco - lag(pct_in_comp_mco),
-    mmc_lag = lag(pct_in_comp_mco)
-  ) %>%
-  filter(!is.na(mmc_jump)) %>%
+  arrange(year, .by_group = TRUE) %>%  # Ensure data is sorted by year within each state
   summarise(
-    max_jump = max(mmc_jump, na.rm = TRUE),
-    treatment_year = ifelse(max_jump > 0,
-                            year[which.max(mmc_jump)],
-                            NA)
+    treatment_year = year[which(pct_in_comp_mco > 0.10)[1]],
+    pct_in_comp_mco = pct_in_comp_mco[which(pct_in_comp_mco > 0.10)[1]]# First year where pct_in_comp_mco > 10%
   ) %>%
   ungroup()
 
-jumps[jumps$state == "Alabama", ]$treatment_year <- NA
-jumps[jumps$state == "California", ]$treatment_year <- 1997
-jumps[jumps$state == "Connecticut", ]$treatment_year <- 1996
 jumps[jumps$state == "District Of Columbia", ]$treatment_year <- 1995
+jumps[jumps$state == "District Of Columbia", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "District Of Columbia" & new_merged_data$year == "1995", ]$pct_in_comp_mco
+
 jumps[jumps$state == "Indiana", ]$treatment_year <- 1995
-jumps[jumps$state == "Kansas", ]$treatment_year <- 1996
-jumps[jumps$state == "Kentucky", ]$treatment_year <- 1998
-jumps[jumps$state == "Maine", ]$treatment_year <- NA
-jumps[jumps$state == "Massachusetts", ]$treatment_year <- 1998
-jumps[jumps$state == "Michigan", ]$treatment_year <- 1997
-jumps[jumps$state == "Minnesota", ]$treatment_year <- 1998
-jumps[jumps$state == "Mississippi", ]$treatment_year <- 2011
-jumps[jumps$state == "Mississippi", ]$treatment_year <- 2011
-jumps[jumps$state == "Montana", ]$treatment_year <- NA
-jumps[jumps$state == "Nebraska", ]$treatment_year <- 1996
-jumps[jumps$state == "Nevada", ]$treatment_year <- 1997
-jumps[jumps$state == "New Mexico", ]$treatment_year <- 1997
+jumps[jumps$state == "Indiana", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "Indiana" & new_merged_data$year == "1995", ]$pct_in_comp_mco
+
+jumps[jumps$state == "Iowa", ]$treatment_year <- 2016
+jumps[jumps$state == "Iowa", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "Iowa" & new_merged_data$year == "2016", ]$pct_in_comp_mco
+
+jumps[jumps$state == "Kansas", ]$treatment_year <- 1997
+jumps[jumps$state == "Kansas", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "Kansas" & new_merged_data$year == "1997", ]$pct_in_comp_mco
+
 jumps[jumps$state == "New York", ]$treatment_year <- 1995
-jumps[jumps$state == "Ohio", ]$treatment_year <- 1995
-jumps[jumps$state == "Oklahoma", ]$treatment_year <- 1996
-jumps[jumps$state == "Pennsylvania", ]$treatment_year <- 1997
-jumps[jumps$state == "South Carolina", ]$treatment_year <- 1997
-jumps[jumps$state == "Texas", ]$treatment_year <- 1996
-jumps[jumps$state == "Utah", ]$treatment_year <- 1995
-jumps[jumps$state == "Vermont", ]$treatment_year <- 1997
-jumps[jumps$state == "Virginia", ]$treatment_year <- 1995
-jumps[jumps$state == "Washington", ]$treatment_year <- 1994
-jumps[jumps$state == "West Virginia", ]$treatment_year <- 1997
+jumps[jumps$state == "New York", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "New York" & new_merged_data$year == "1995", ]$pct_in_comp_mco
+
+jumps[jumps$state == "Texas", ]$treatment_year <- 1997
+jumps[jumps$state == "Texas", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "Texas" & new_merged_data$year == "1997", ]$pct_in_comp_mco
+
+jumps[jumps$state == "Mississippi", ]$treatment_year <- 2011
+jumps[jumps$state == "Mississippi", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "Mississippi" & new_merged_data$year == "2011", ]$pct_in_comp_mco
+
+jumps[jumps$state == "South Carolina", ]$treatment_year <- 2007
+jumps[jumps$state == "South Carolina", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "South Carolina" & new_merged_data$year == "2007", ]$pct_in_comp_mco
+
+jumps[jumps$state == "New Hampshire", ]$treatment_year <- 2014
+jumps[jumps$state == "New Hampshire", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "New Hampshire" & new_merged_data$year == "2014", ]$pct_in_comp_mco
+
+jumps[jumps$state == "Pennsylvania", ]$treatment_year <- 1995
+jumps[jumps$state == "Pennsylvania", ]$pct_in_comp_mco <- 
+  new_merged_data[new_merged_data$state == "Pennsylvania" & new_merged_data$year == "1995", ]$pct_in_comp_mco
+
+
 
 jumps$state <- str_to_title(jumps$state)
 
@@ -287,7 +537,7 @@ saveRDS(jumps, file = paste0(path, "/Temp/jumps.rds"))
 
 # Calculate increase in mandate for treatment year
 mandates2 <- left_join(mandates, jumps, by = c("stname" = "state"))
-mandates3 <- mandates2 %>% select(-max_jump, -treatment_year)
+mandates3 <- mandates2 %>% select(-pct_in_comp_mco, -treatment_year)
 
 # Join state-year mandate data to panel
 new_merged_data_temp <- new_merged_data_temp %>%
@@ -322,18 +572,18 @@ new_merged_data_temp <- new_merged_data_temp %>%
 for (st in unique_states) {
   state_data <- new_merged_data_temp %>%
     filter(state == st) %>%
-    mutate(pct_in_comp_mco = as.numeric(pct_in_comp_mco),
+    mutate(pct_in_comp_mco.x = as.numeric(pct_in_comp_mco.x),
            pct_with_mandate = as.numeric(pct_with_mandate),
            pct_with_crb_mandate = as.numeric(pct_with_crb_mandate))
   
   y_max <- state_data %>%
     filter(year >= (treatment_year - 1) & year <= (treatment_year + 1)) %>%
-    summarize(max_y = max(pct_in_comp_mco)) %>%
+    summarize(max_y = max(pct_in_comp_mco.x)) %>%
     pull(max_y)
   
   p <- ggplot(state_data) +
     geom_line(aes(x = year, 
-                  y = pct_in_comp_mco, 
+                  y = pct_in_comp_mco.x, 
                   color = "Share of Comp. Risk-Based Enrollment"),
               linewidth = 1) +
     geom_line(data = state_data %>% filter(year <= 2001),
@@ -363,8 +613,8 @@ for (st in unique_states) {
     annotate("text",
              x = state_data$treatment_year + 1,
              y = y_max - 0.10,
-             label = paste0("Jump Magnitude: ", 
-                            scales::percent(max(state_data$max_jump))),
+             label = paste0("% in Comp. MCO: ", 
+                            scales::percent(max(state_data$pct_in_comp_mco.y))),
              size = 4,
              hjust = 0,
              color = pubblue) +

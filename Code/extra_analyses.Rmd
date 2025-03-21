@@ -1,39 +1,35 @@
 ---
 title: "Extra Analyses"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 date: "2025-03-14"
 ---
 
-```{r, echo = FALSE, warning=FALSE}
-rm(list = ls())
 
-packages <- c("ggplot2", "estimatr", "readxl", "readr", "dplyr",
-              "stringr", "ivreg", "tidyverse", "texreg", "ggrepel", 
-              "lfe", "fastDummies", "ggpubr", "RColorBrewer", "ggthemes",
-              "stargazer", "grid", "foreign", "kableExtra", "lubridate",
-              "haven", "fuzzyjoin", "stringi", "zoo", "viridis", "scales",
-              "synthdid", "pubtheme", "gridExtra", "tinytex", "did")
-
-ipak <- function(pkg){
-  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
-  if (length(new.pkg)) 
-    install.packages(new.pkg, dependencies = TRUE)
-  sapply(pkg, require, character.only = TRUE)
-}
-
-ipak(packages)
-
-options(scipen = 100)
-theme_set(theme_clean() + theme(plot.background = element_blank()))
-set.seed(2023)
+```{r, echo=FALSE, warning=FALSE}
+library(ggplot2)
+library(ggthemes)
+library(fastDummies)
+library(RColorBrewer)
+library(scales)
+library(lfe)
+library(haven)
+library(readxl)
+library(readr)
+library(dplyr)
+library(ivreg)
+library(gridExtra)
+library(tinytex)
+library(synthdid)
+library(did)
+library(tidyverse)
 ```
 
 
 ### 1. Load data, preprocess
 
-```{r, echo = F}
+```{r, echo=FALSE, warning=FALSE}
 path <- file.path("D:", "Groups", "YSPH-HPM-Ndumele", "Networks", "Dohyun",
                   "medicaid_privatization_exp")
 
@@ -215,7 +211,7 @@ data <- dat #%>%
 
 ```{r}
 # Get vector of cohort years
-cohorts <- unique(dat$treatment_year)
+cohorts <- sort(unique(dat$treatment_year))
 cohorts <- cohorts[!is.infinite(cohorts)]
 
 # Initialize a list to store results
@@ -367,6 +363,8 @@ data_cohorts <- data %>%
 ```
 
 ```{r, warning=FALSE}
+
+# Vector of relative time variables
 keepvars <- c(paste0("`center_time_-", 10:2, "`"),  
               paste0("center_time_", 0:10))
 
@@ -418,13 +416,17 @@ prep_es_trend_10 <- function(mod){
   return(es)
 }
 
-did_graph_trend_10 <- function(outcome, outcome_name, cohort_interval, cohort_var){
+#' Plot 10-year event study plot with data filtered by interval cohort
+#' @param data panel data
+#' @param outcome outcome variable (numeric)
+#' @param outcome_name name of the outcome variable (character)
+#' @param cohort_var name of the interval variable (character)
+#' @param cohort_interval range of years (cohort) we want to filter for (character)
+did_graph_trend_10 <- function(data, outcome, outcome_name, cohort_var, cohort_interval){
   p <- list()
   
-  cohort_interval <- sym(cohort_interval)
-  
-  cohort_data <- data_cohorts %>%
-    filter(!!cohort_interval == cohort_var | !!cohort_interval == "never-treated")
+  cohort_data <- data %>%
+    filter(!!sym(cohort_var) == cohort_interval)
   
   # Normal event study 
   formula_str1 <- paste0(
@@ -491,8 +493,8 @@ did_graph_trend_10 <- function(outcome, outcome_name, cohort_interval, cohort_va
     # scale_y_continuous(breaks = round(seq(-0.2, 0.2, by = 0.1), 1),
     #                  limits = c(-0.2, 0.2))+
     labs(x = "Relative Time", y = "Estimate",
-         title = paste0(outcome_name, " - ", cohort_var))+
-    theme(plot.title = element_text(hjust = 0.5, size = 20),
+         title = paste0(outcome_name, " - ", cohort_interval))+
+    theme(plot.title = element_text(hjust = 0.5, size = 15),
           legend.position = "none")+
     geom_text(data = es_d2 %>% filter(t >= 0 & t <= 10), 
               aes(x = t, y = 0.5*max(es_d2$upper), label = coef_star, angle = 45),
@@ -514,8 +516,8 @@ did_graph_trend_10 <- function(outcome, outcome_name, cohort_interval, cohort_va
     #                    limits = c(-0.5, 1.1))+
     labs(x = "Relative Time", 
          y = "Estimate", 
-         title = paste0(outcome_name, " - ", cohort_var)) +
-    theme(plot.title = element_text(hjust = 0.5, size = 20),
+         title = paste0(outcome_name, " - ", cohort_interval)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 15),
           legend.position="none")
   p2
   
@@ -523,8 +525,79 @@ did_graph_trend_10 <- function(outcome, outcome_name, cohort_interval, cohort_va
   p[[2]] <- p2
   return(p)
 }
+```
 
+```{r, warning=FALSE}
 
+# Define treatment cohorts
+assign_cohort_5 <- function(treatment_year) {
+  case_when(
+    is.na(treatment_year) ~ "never-treated",
+    treatment_year >= 1996 & treatment_year <= 2000 ~ "1996-2000",
+    treatment_year >= 1991 & treatment_year <= 1995 ~ "1991-1995",
+    treatment_year >= 2006 & treatment_year <= 2010 ~ "2006-2010",
+    treatment_year >= 2016 & treatment_year <= 2022 ~ "2016-2022",
+    treatment_year >= 2011 & treatment_year <= 2015 ~ "2011-2015",
+    TRUE ~ "never-treated"  # Default fallback if none of the above match
+  )
+}
+
+# Construct stacked data
+# For each treatment year, construct control without treatment within 10/20 years
+collect_10 <- list()
+collect_20 <- list()
+
+for(i in unique(data_cohorts$treatment_year[data_cohorts$treatment_year != Inf])){
+  
+  # Get treated state
+  treated_state <- data_cohorts %>%
+    filter(treatment_year == i) %>% 
+    mutate(treatment_year_group = i) %>%
+    mutate(cohort_5_interval = assign_cohort_5(treatment_year_group)) %>%
+    select(state, year, center_time, treated, total_medicaid,
+           log_all_medicaid_spending_per_cap, all_medicaid_spending_per_cap,
+           pct_in_comp_mco, treatment_year, treatment_year_group, cohort_5_interval)
+  
+  max_year <- max(treated_state$year)
+  
+  # Get control states within a 10 year (pre and post) from treatment year
+  control_state_10 <- data_cohorts %>% 
+    filter(treatment_year > i + 10,
+           year <= i + 10, year >= i - 10) %>% 
+    mutate(treatment_year_group = i,
+           center_time = 0,
+           treated = 0,
+           cohort_5_interval = assign_cohort_5(treatment_year_group)) %>% 
+    select(state, year, center_time, treated, total_medicaid,
+           log_all_medicaid_spending_per_cap, all_medicaid_spending_per_cap,
+           pct_in_comp_mco, treatment_year, treatment_year_group, cohort_5_interval)
+  
+  control_state_20 <- data_cohorts %>% 
+    filter(treatment_year > i + 20, 
+           year <= i + 20, year >= i - 20) %>% 
+    mutate(treatment_year_group = i,
+           center_time = 0,
+           treated = 0,
+           cohort_5_interval = assign_cohort_5(treatment_year_group)) %>%
+    select(state, year, center_time, treated, total_medicaid,
+           log_all_medicaid_spending_per_cap, all_medicaid_spending_per_cap,
+           pct_in_comp_mco, treatment_year, treatment_year_group, cohort_5_interval)
+  
+  collect_10[[length(collect_10)+1]] <- rbind(treated_state, control_state_10)
+  collect_20[[length(collect_20)+1]] <- rbind(treated_state, control_state_20)
+}
+
+# Collapse into one dataframe
+dat_10 <- do.call(rbind, collect_10)
+dat_20 <- do.call(rbind, collect_20)
+
+dat_10 <- dat_10 %>% dummy_cols(select_columns = "center_time")
+dat_20 <- dat_20 %>% dummy_cols(select_columns = "center_time")
+
+# DID - 10 period
+dat <- dat_10
+dat <- dat %>%
+  mutate(log_total_spend = log(total_medicaid))
 
 ```
 
@@ -552,7 +625,7 @@ for (outcome_name in names(outcomes)) {
   # Loop through each cohort
   for (cohort in cohorts) {
     # Generate the plot
-    p <- did_graph_trend_10(outcome_name, outcome_label, "cohort_5_interval", cohort)
+    p <- did_graph_trend_10(dat, outcome_name, outcome_label, "cohort_5_interval", cohort)
   
     # Store the plot in the list
     plot_list[[paste(outcome_name, cohort, sep = "_")]] <- p
@@ -562,6 +635,76 @@ for (outcome_name in names(outcomes)) {
   print(outcome_plots)
 }
 ```
+
+```{r}
+# Define treatment cohorts
+assign_cohort_10 <- function(treatment_year) {
+  case_when(
+    treatment_year >= 1991 & treatment_year <= 2000 ~ "1991-2000",
+    treatment_year >= 2001 & treatment_year <= 2010 ~ "2001-2010",
+    treatment_year >= 2011 & treatment_year <= 2022 ~ "2011-2022",
+    TRUE ~ "never-treated"  # Default fallback if none of the above match
+  )
+}
+
+# Construct stacked data
+# For each treatment year, construct control without treatment within 10/20 years
+collect_10 <- list()
+collect_20 <- list()
+
+for(i in unique(data_cohorts$treatment_year[data_cohorts$treatment_year != Inf])){
+  
+  # Get treated state
+  treated_state <- data_cohorts %>%
+    filter(treatment_year == i) %>% 
+    mutate(treatment_year_group = i) %>%
+    mutate(cohort_10_interval = assign_cohort_10(treatment_year_group)) %>%
+    select(state, year, center_time, treated, total_medicaid,
+           log_all_medicaid_spending_per_cap, all_medicaid_spending_per_cap,
+           pct_in_comp_mco, treatment_year, treatment_year_group, cohort_10_interval)
+  
+  max_year <- max(treated_state$year)
+  
+  # Get control states within a 10 year (pre and post) from treatment year
+  control_state_10 <- data_cohorts %>% 
+    filter(treatment_year > i + 10,
+           year <= i + 10, year >= i - 10) %>% 
+    mutate(treatment_year_group = i,
+           center_time = 0,
+           treated = 0,
+           cohort_10_interval = assign_cohort_10(treatment_year_group)) %>% 
+    select(state, year, center_time, treated, total_medicaid,
+           log_all_medicaid_spending_per_cap, all_medicaid_spending_per_cap,
+           pct_in_comp_mco, treatment_year, treatment_year_group, cohort_10_interval)
+  
+  control_state_20 <- data_cohorts %>% 
+    filter(treatment_year > i + 20, 
+           year <= i + 20, year >= i - 20) %>% 
+    mutate(treatment_year_group = i,
+           center_time = 0,
+           treated = 0,
+           cohort_10_interval = assign_cohort_10(treatment_year_group)) %>%
+    select(state, year, center_time, treated, total_medicaid,
+           log_all_medicaid_spending_per_cap, all_medicaid_spending_per_cap,
+           pct_in_comp_mco, treatment_year, treatment_year_group, cohort_10_interval)
+  
+  collect_10[[length(collect_10)+1]] <- rbind(treated_state, control_state_10)
+  collect_20[[length(collect_20)+1]] <- rbind(treated_state, control_state_20)
+}
+
+dat_10 <- do.call(rbind, collect_10)
+dat_20 <- do.call(rbind, collect_20)
+
+dat_10 <- dat_10 %>% dummy_cols(select_columns = "center_time")
+dat_20 <- dat_20 %>% dummy_cols(select_columns = "center_time")
+
+# DID - 10 period
+dat <- dat_10
+dat <- dat %>%
+  mutate(log_total_spend = log(total_medicaid))
+```
+
+
 ### Plots for 10 year interval cohorts
 
 ```{r, warning=FALSE}
@@ -585,7 +728,7 @@ for (outcome_name in names(outcomes)) {
   # Loop through each cohort
   for (cohort in cohorts2) {
     # Generate the plot
-    p <- did_graph_trend_10(outcome_name, outcome_label, "cohort_10_interval", cohort)
+    p <- did_graph_trend_10(dat, outcome_name, outcome_label, "cohort_10_interval", cohort)
   
     # Store the plot in the list
     plot_list[[paste(outcome_name, cohort, sep = "_")]] <- p
@@ -613,8 +756,9 @@ result <- att_gt(
 
 agg_results <- aggte(result, type = "dynamic")
 
-ggdid(agg_results) + 
+p1 <- ggdid(agg_results) + 
   labs(title = "Percent in Comprehensive MCO Enrollment")
+
 ```
 
 ### Total Medicaid Enrollment
@@ -710,16 +854,6 @@ ggdid(agg_results) +
 
 ```
 
-
-### Takeaways
-
-* Synthetic DiD: Most cohorts show an increasing in spending, although some
-suggest a decrease in spending
-
-* TWFE by cohort consistent with initial results
-
-* Callaway-Sant'anna: Application more robust to staggered adoption, but still 
-consistent with initial findings
 
 
 

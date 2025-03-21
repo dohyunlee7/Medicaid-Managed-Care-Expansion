@@ -1,0 +1,45 @@
+---------------------------------------------------------------
+      name:  <unnamed>
+       log:  D:\Groups\YSPH-HPM-Ndumele\Networks\Dohyun\medicai
+> d_privatization_exp\Input_Data\Medicaid_managedcare_enrollmen
+> t_report\external\managed_carefix2.txt
+  log type:  text
+ opened on:  12 Mar 2025, 11:37:23
+
+. /*
+> use mc91
+> append using mc92
+> append using mc93
+> append using mc94
+> append using mc95
+> append using mc96
+> append using mc97
+> append using mc98
+> append using mc99
+> append using mc00
+> append using mc01
+> append using mc02
+> append using mc03
+> append using mc04
+> append using mc05
+> 
+> replace undup_tot=st_tot if undup_tot==.
+> replace st_tot=undup_tot+pccm2 if pccm2!=.
+> replace st_tot=st_tot+php2 if php2!=.
+> replace state="XX" if state=="TOTAL"
+> sort year state
+> save mc91_05, replace
+> 
+> list state year undup_tot
+> 
+> clear
+> */
+. use fmr90-05
+file fmr90-05.dta not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. exit, clear
